@@ -1,350 +1,2901 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Breakon Game Studio | 独立游戏工作室</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d0b0a">
+<title>数术西行 · 天书残卷</title>
 <style>
-/* ===================== 基础重置与变量 ===================== */
-:root {
-  --bg: #000000;
-  --bg-card: #0a0a0a;
-  --text-main: #ffffff;
-  --text-sub: #999999;
-  --gold: #c9a227;       /* 高级暗金色 */
-  --gold-hover: #e8ce8e;
-  --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", sans-serif;
+:root{
+  --ink:#0d0b0a;
+  --ink2:#14110f;
+  --ink3:#1c1815;
+  --paper:#e8e0cf;
+  --paper-dim:#b9ae99;
+  --cinnabar:#c0392b;
+  --gold:#c9a227;
+  --jade:#3f7d7a;
+  --line:rgba(201,162,39,.26);
+  --line-soft:rgba(232,224,207,.12);
+  --shadow:0 18px 50px rgba(0,0,0,.42);
+  --song:"Songti SC","STSong","SimSun","Songti TC",serif;
+  --kai:"Kaiti SC","STKaiti","KaiTi","FangSong","STFangsong",serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;background:var(--ink)}
+body{
+  margin:0;
+  min-height:100vh;
+  color:var(--paper);
+  background:
+    radial-gradient(ellipse at 50% -12%,rgba(201,162,39,.10),transparent 52%),
+    radial-gradient(ellipse at 108% 44%,rgba(63,125,122,.08),transparent 48%),
+    radial-gradient(ellipse at -12% 86%,rgba(192,57,43,.06),transparent 44%),
+    var(--ink);
+  font-family:var(--kai);
+  font-size:16px;
+  line-height:1.7;
+  letter-spacing:.035em;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  opacity:.5;
+  background:
+    repeating-linear-gradient(135deg,transparent 0 27px,rgba(232,224,207,.018) 27px 28px),
+    repeating-linear-gradient(45deg,transparent 0 41px,rgba(201,162,39,.012) 41px 42px);
+}
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.34) 100%);
+}
+button,input{font:inherit;color:inherit}
+button{touch-action:manipulation}
+button:focus-visible,input:focus-visible{outline:1px solid var(--gold);outline-offset:3px}
+::selection{background:var(--cinnabar);color:var(--paper)}
+#app,.modal-root,.toast,.fx{position:relative;z-index:2}
+.view{width:100%;animation:inkIn .28s ease-out}
+.wrap{width:100%;max-width:900px;margin:0 auto;padding:22px 18px 40px}
+.song{font-family:var(--song)}
+.muted{color:var(--paper-dim)}
+.gold{color:var(--gold)}
+.cinnabar{color:var(--cinnabar)}
+.jade{color:var(--jade)}
+.tiny{font-size:12px;line-height:1.6;letter-spacing:.08em}
+.small{font-size:13.5px}
+.center{text-align:center}
+.hidden{display:none !important}
+[hidden]{display:none !important}
+.nowrap{white-space:nowrap}
+.rule{height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);margin:18px 0}
+.hair{height:1px;background:var(--line-soft)}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.spread{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.grow{flex:1;min-width:0}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt18{margin-top:18px}.mt24{margin-top:24px}
+
+@keyframes inkIn{
+  from{opacity:0;filter:blur(3px);transform:translateY(4px)}
+  to{opacity:1;filter:none;transform:none}
+}
+@keyframes goldSweep{
+  from{transform:translateX(-120%)}
+  to{transform:translateX(120%)}
+}
+@keyframes stampIn{
+  0%{opacity:0;transform:scale(1.28) rotate(-3deg)}
+  62%{opacity:1;transform:scale(.97) rotate(-2deg)}
+  100%{opacity:1;transform:scale(1) rotate(-2deg)}
+}
+@keyframes dustOut{
+  0%{opacity:0;transform:translate(0,0) scale(.7)}
+  30%{opacity:1}
+  100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.15)}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body {
-  background-color: var(--bg);
-  color: var(--text-main);
-  font-family: var(--font-main);
-  line-height: 1.6;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
+/* ——— 壳与页眉 ——— */
+.topbar{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
+  padding:14px 0 12px;border-bottom:1px solid var(--line-soft);
 }
-a { color: inherit; text-decoration: none; }
-::selection { background: var(--gold); color: #000; }
+.brand-mini{font-family:var(--song);letter-spacing:.16em;font-size:15px;color:var(--paper)}
+.brand-mini span{color:var(--gold)}
+.player-line{font-size:13px;color:var(--paper-dim);text-align:right;letter-spacing:.08em}
+.player-line b{color:var(--paper);font-weight:400}
+.icon-btn{
+  appearance:none;border:1px solid var(--line);background:transparent;color:var(--paper-dim);
+  width:34px;height:34px;padding:0;cursor:pointer;font-size:12px;line-height:1;flex:none;
+  position:relative;
+}
+.icon-btn:hover{border-color:var(--gold);color:var(--gold)}
+.icon-btn.on{color:var(--gold);border-color:var(--gold)}
+.nav-strip{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+.nav-strip .btn{flex:1 1 auto;padding:10px 8px;font-size:13.5px}
+.resource-strip{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  border:1px solid var(--line-soft);border-top:0;margin-top:0;
+}
+.resource-cell{padding:9px 8px;text-align:center;border-right:1px solid var(--line-soft);min-width:0}
+.resource-cell:last-child{border-right:0}
+.resource-cell .k{font-size:11px;color:var(--paper-dim);letter-spacing:.14em;display:block}
+.resource-cell .v{font-family:var(--song);font-size:17px;color:var(--gold);letter-spacing:.05em}
 
-/* 隐藏滚动条但保留滚动功能 (更沉浸) */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #000; }
-::-webkit-scrollbar-thumb { background: #333; }
-::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+/* ——— 按钮：印章 ——— */
+.btn{
+  appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:42px;padding:10px 16px;border:1px solid rgba(201,162,39,.48);
+  background:linear-gradient(180deg,rgba(232,224,207,.045),rgba(232,224,207,.015));
+  color:var(--paper);font-family:var(--kai);letter-spacing:.14em;font-size:14.5px;
+  border-radius:0;cursor:pointer;position:relative;text-decoration:none;
+  transition:background .18s ease,border-color .18s ease,color .18s ease;
+}
+.btn::after{
+  content:"";position:absolute;inset:3px;border:1px solid rgba(201,162,39,.12);pointer-events:none;
+}
+.btn:hover{border-color:var(--gold);background:rgba(201,162,39,.08)}
+.btn:active{background:rgba(201,162,39,.14)}
+.btn:disabled{opacity:.38;cursor:not-allowed;background:transparent}
+.btn-main{
+  background:var(--cinnabar);border-color:var(--cinnabar);color:#f3ead8;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 7px 20px rgba(192,57,43,.18);
+}
+.btn-main::after{border-color:rgba(243,234,216,.28)}
+.btn-main:hover{background:#cf4132;border-color:#cf4132}
+.btn-gold{border-color:var(--gold);color:var(--gold)}
+.btn-ghost{background:transparent;border-color:var(--line-soft);color:var(--paper-dim)}
+.btn-ghost:hover{border-color:var(--line);color:var(--paper)}
+.btn-wide{width:100%}
+.btn-sm{min-height:34px;padding:7px 11px;font-size:12.5px;letter-spacing:.1em}
+.btn-seal{
+  width:100%;min-height:54px;font-family:var(--song);font-size:19px;letter-spacing:.28em;
+  background:var(--cinnabar);border:0;color:var(--paper);
+  box-shadow:inset 0 0 0 1px rgba(243,234,216,.22),inset 0 0 0 4px var(--cinnabar),inset 0 0 0 5px rgba(243,234,216,.25);
+}
+.btn-seal:hover{background:#cf4132}
+.linkish{
+  appearance:none;border:0;background:none;padding:2px;color:var(--paper-dim);
+  font-family:var(--kai);font-size:12.5px;letter-spacing:.08em;cursor:pointer;
+  border-bottom:1px solid transparent;
+}
+.linkish:hover{color:var(--gold);border-bottom-color:var(--gold)}
 
-/* ===================== 导航栏 (类似原版悬浮) ===================== */
-.header {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 20px 40px; transition: all 0.4s ease;
-  background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+/* ——— 封面 ——— */
+.home{min-height:100vh;min-height:100svh;display:grid;place-items:center;padding:26px 18px 34px;position:relative;overflow:hidden}
+.home-inner{width:100%;max-width:760px;position:relative;padding-bottom:76px}
+.home-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:clamp(20px,7vh,60px)}
+.home-mark{font-size:11px;letter-spacing:.42em;color:var(--paper-dim)}
+.home-mark b{display:block;color:var(--gold);font-weight:400;letter-spacing:.3em;margin-top:5px}
+.title-block{position:relative;padding:8px 0 18px}
+.title-block::before{
+  content:"";position:absolute;left:-18px;top:0;bottom:0;width:1px;
+  background:linear-gradient(180deg,transparent,var(--gold),transparent);opacity:.48;
 }
-.header.scrolled {
-  background: rgba(0, 0, 0, 0.9);
-  backdrop-filter: blur(10px);
-  padding: 15px 40px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+.title-main{
+  font-family:var(--song);font-weight:400;margin:0;
+  font-size:clamp(48px,14.6vw,92px);line-height:1.02;letter-spacing:.14em;
+  color:var(--paper);text-shadow:0 3px 24px rgba(201,162,39,.08);
 }
-.nav-logo {
-  display: flex; align-items: center; gap: 12px;
+.title-sub{
+  display:flex;align-items:center;gap:15px;margin-top:10px;
+  font-family:var(--song);font-size:clamp(18px,4.8vw,25px);letter-spacing:.48em;color:var(--gold);
 }
-.nav-logo img {
-  width: 36px; height: 36px; border-radius: 50%; background: #111;
+.title-sub::after{content:"";height:1px;flex:1;background:linear-gradient(90deg,var(--gold),transparent);opacity:.38}
+.cover-rule{width:64px;height:3px;background:var(--cinnabar);margin:22px 0 18px;position:relative}
+.cover-rule::after{content:"";position:absolute;left:72px;top:1px;width:34px;height:1px;background:var(--gold);opacity:.5}
+.lede{max-width:34em;color:var(--paper-dim);font-size:15px;line-height:2;margin:0 0 28px;letter-spacing:.08em}
+.lede b{color:var(--paper);font-weight:400}
+.name-field{display:flex;flex-direction:column;gap:7px;margin:0 0 18px;max-width:380px}
+.name-field label{font-size:11.5px;letter-spacing:.24em;color:var(--paper-dim)}
+.name-input{
+  width:100%;background:rgba(232,224,207,.035);border:0;border-bottom:1px solid var(--gold);
+  padding:10px 2px;font-family:var(--song);font-size:22px;letter-spacing:.16em;color:var(--paper);
+  border-radius:0;
 }
-.nav-logo span {
-  font-size: 16px; font-weight: 600; letter-spacing: 1px;
+.name-input::placeholder{color:rgba(232,224,207,.2);letter-spacing:.12em}
+.home-actions{display:flex;flex-direction:column;gap:10px;max-width:380px}
+.home-foot{margin-top:30px;display:flex;justify-content:space-between;align-items:end;gap:12px;color:var(--paper-dim);font-size:11px;letter-spacing:.1em}
+.vertical-whisper{
+  position:absolute;right:-2px;top:108px;writing-mode:vertical-rl;font-family:var(--song);
+  color:rgba(232,224,207,.12);font-size:13px;letter-spacing:.55em;pointer-events:none;
 }
-.nav-links { display: flex; gap: 40px; list-style: none; align-items: center; }
-.nav-links a {
-  font-size: 14px; color: #ccc; transition: color 0.3s; position: relative;
+.home-cloud{
+  position:absolute;left:-30%;right:-30%;bottom:-38%;height:57%;pointer-events:none;opacity:.4;
+  background:
+    radial-gradient(ellipse at 30% 40%,rgba(63,125,122,.13),transparent 55%),
+    radial-gradient(ellipse at 70% 62%,rgba(201,162,39,.08),transparent 54%);
+  filter:blur(8px);
 }
-.nav-links a:hover, .nav-links a.highlight { color: var(--gold); }
-.nav-links a.highlight { font-weight: bold; }
+.seal-corner{
+  position:absolute;right:2px;bottom:6px;width:58px;height:58px;border:2px solid var(--cinnabar);
+  display:grid;place-items:center;color:var(--cinnabar);font-family:var(--song);font-size:20px;
+  letter-spacing:0;transform:rotate(-3deg);opacity:.82;
+  box-shadow:inset 0 0 0 3px var(--ink),inset 0 0 0 4px var(--cinnabar);
+}
+.seal-corner span{display:block;text-align:center;line-height:1.08;font-size:16px;letter-spacing:.02em;writing-mode:horizontal-tb}
 
-/* ===================== 首屏 Hero (沉浸式大图) ===================== */
-.hero {
-  position: relative; height: 100vh;
-  display: flex; align-items: center;
-  padding: 0 10vw;
-  background: url('https://cdn.luogu.com.cn/upload/image_hosting/lx0x0i25.webp') no-repeat center center;
-  background-size: cover;
+/* ——— 路引 ——— */
+.journey-head{margin:18px 0 20px;position:relative}
+.journey-title{font-family:var(--song);font-size:clamp(28px,7vw,42px);letter-spacing:.2em;margin:0;font-weight:400}
+.journey-sub{font-size:12px;color:var(--paper-dim);letter-spacing:.2em;margin-top:6px}
+.chapter-list{border-top:1px solid var(--line);margin-top:8px}
+.chapter{
+  width:100%;display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:13px;align-items:center;
+  padding:15px 2px;border:0;border-bottom:1px solid var(--line-soft);background:transparent;
+  text-align:left;cursor:pointer;color:var(--paper);position:relative;
 }
-/* 用渐变遮罩代替实际图片，如果你的 Logo 不适合做大图，这里是纯色工业风背景 */
-.hero-bg {
-  position: absolute; inset: 0;
-  background: 
-    radial-gradient(circle at 70% 30%, rgba(201, 162, 39, 0.15) 0%, transparent 50%),
-    linear-gradient(90deg, #000 0%, rgba(0,0,0,0.8) 40%, transparent 100%);
-  z-index: 1;
+.chapter::after{
+  content:"›";color:rgba(201,162,39,.25);font-size:19px;margin-left:5px;
+  grid-column:4;grid-row:1;
 }
-.hero-content {
-  position: relative; z-index: 2; max-width: 600px;
+.chapter:hover{background:linear-gradient(90deg,transparent,rgba(201,162,39,.045),transparent)}
+.chapter:hover .ch-title{color:var(--gold)}
+.chapter.locked{cursor:not-allowed;opacity:.42}
+.chapter.locked::after{content:"锁";font-size:10px;letter-spacing:.1em;color:var(--paper-dim)}
+.chapter.done .ch-no{border-color:var(--jade);color:var(--jade)}
+.chapter.current .ch-no{background:var(--cinnabar);color:var(--paper);border-color:var(--cinnabar);box-shadow:0 0 22px rgba(192,57,43,.25)}
+.ch-no{
+  width:38px;height:38px;border:1px solid var(--line);display:grid;place-items:center;
+  font-family:var(--song);font-size:15px;color:var(--gold);flex:none;
 }
-.hero-subtitle {
-  font-size: 14px; color: var(--gold); letter-spacing: 4px; margin-bottom: 20px;
-  text-transform: uppercase;
+.ch-main{min-width:0;display:flex;flex-direction:column;gap:3px}
+.ch-title{font-family:var(--song);font-size:18px;letter-spacing:.1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch-meta{font-size:11.5px;color:var(--paper-dim);letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch-state{font-size:11px;color:var(--paper-dim);text-align:right;white-space:nowrap;letter-spacing:.04em}
+.ch-state .st{color:var(--gold);letter-spacing:.12em}
+.ch-state .done-tag{color:var(--jade);border:1px solid rgba(63,125,122,.55);padding:1px 5px;font-size:10px}
+.quote-slab{
+  border-left:2px solid var(--cinnabar);padding:5px 0 5px 14px;margin:20px 0 6px;
+  color:var(--paper-dim);font-size:13px;line-height:1.9;
 }
-.hero-title {
-  font-size: clamp(40px, 6vw, 72px); font-weight: 800; line-height: 1.1;
-  margin-bottom: 24px; letter-spacing: 2px;
-}
-.hero-desc {
-  font-size: 16px; color: #aaa; margin-bottom: 40px; line-height: 1.8;
-}
-.btn {
-  display: inline-block; padding: 12px 36px;
-  border: 1px solid rgba(255, 255, 255, 0.3); color: #fff;
-  font-size: 14px; letter-spacing: 1px; cursor: pointer;
-  background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);
-  transition: all 0.3s ease;
-}
-.btn:hover {
-  background: #fff; color: #000; border-color: #fff;
-}
-.btn.gold {
-  border-color: var(--gold); color: var(--gold);
-}
-.btn.gold:hover {
-  background: var(--gold); color: #000;
-}
+.quote-slab b{color:var(--paper);font-weight:400}
+.footer-small{margin-top:26px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--line-soft);padding-top:12px}
+.footer-small .tiny{color:rgba(232,224,207,.32)}
+.parent-link{font-size:10.5px;color:rgba(232,224,207,.28);border-bottom:1px solid transparent}
+.parent-link:hover{color:var(--paper-dim);border-bottom-color:var(--line)}
 
-/* ===================== 理念模块 (Mission 风格) ===================== */
-.mission {
-  padding: 150px 20px; text-align: center;
-  background: linear-gradient(180deg, #000 0%, #050505 100%);
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+/* ——— 卷首 ——— */
+.story-head{padding:20px 0 0}
+.volume-eyebrow{color:var(--cinnabar);font-family:var(--song);letter-spacing:.4em;font-size:12px}
+.story-title{font-family:var(--song);font-weight:400;font-size:clamp(30px,8.3vw,50px);letter-spacing:.12em;margin:8px 0 4px;line-height:1.25}
+.story-guard{color:var(--paper-dim);font-size:12.5px;letter-spacing:.14em}
+.intro-card{border-top:1px solid var(--line);border-bottom:1px solid var(--line-soft);padding:22px 0;margin:20px 0 6px;position:relative}
+.intro-card::before{
+  content:"引";position:absolute;right:0;top:12px;font-family:var(--song);font-size:54px;
+  color:rgba(232,224,207,.035);line-height:1;pointer-events:none;
 }
-.mission h2 {
-  font-size: clamp(28px, 4vw, 48px); font-weight: 700; margin-bottom: 20px;
-  letter-spacing: 2px;
-}
-.mission p {
-  font-size: 16px; color: var(--text-sub); max-width: 600px; margin: 0 auto 40px;
-}
+.story-intro{margin:0;font-size:16px;line-height:2.1;text-indent:2em;color:rgba(232,224,207,.9);letter-spacing:.08em;position:relative}
+.dialogue{display:flex;flex-direction:column;gap:0;margin:18px 0 8px;border-left:1px solid var(--line);padding-left:18px}
+.dlg{display:grid;grid-template-columns:4.2em minmax(0,1fr);gap:12px;padding:11px 0;border-bottom:1px solid rgba(232,224,207,.055)}
+.dlg:last-child{border-bottom:0}
+.dlg-speaker{font-family:var(--song);color:var(--gold);letter-spacing:.12em;font-size:15px;white-space:nowrap}
+.dlg-text{color:var(--paper);font-size:15.5px;line-height:1.9;min-width:0}
+.dlg-text .you{color:var(--jade)}
+.volume-rule{display:flex;gap:20px;flex-wrap:wrap;border:1px solid var(--line-soft);padding:12px 14px;margin:20px 0;color:var(--paper-dim);font-size:12px}
+.volume-rule b{color:var(--gold);font-weight:400}
+.story-actions{display:flex;flex-direction:column;gap:9px;margin-top:18px}
 
-/* ===================== 作品展示 (Games 风格) ===================== */
-.games-section {
-  padding: 100px 5vw; background: var(--bg);
+/* ——— 斗法 ——— */
+.battle-top{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.fighter{border:1px solid var(--line-soft);padding:10px 11px;min-width:0;background:rgba(232,224,207,.018)}
+.fighter .f-k{font-size:10.5px;letter-spacing:.16em;color:var(--paper-dim);display:flex;justify-content:space-between;gap:7px}
+.fighter .f-n{font-family:var(--song);font-size:16px;letter-spacing:.08em;margin:2px 0 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fighter.enemy{border-color:rgba(192,57,43,.34)}
+.fighter.self{border-color:rgba(63,125,122,.36)}
+.qi-row{display:flex;align-items:center;gap:3px;flex-wrap:wrap}
+.pip{display:block;width:9px;height:15px;border:1px solid rgba(201,162,39,.45);background:transparent}
+.pip.on{background:var(--cinnabar);border-color:var(--cinnabar)}
+.fighter.self .pip{border-color:rgba(63,125,122,.5)}
+.fighter.self .pip.on{background:var(--jade);border-color:var(--jade)}
+.qi-num{font-family:var(--song);font-size:13px;color:var(--paper-dim);margin-left:4px}
+.combo-line{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:11px;color:var(--paper-dim);letter-spacing:.07em;margin:4px 0 10px}
+.combo-line b{color:var(--gold);font-weight:400}
+.timer-track{height:5px;background:rgba(232,224,207,.08);overflow:hidden;position:relative}
+.timer-fill{height:100%;width:100%;background:linear-gradient(90deg,#8e7420,var(--gold),#e2c766);transform-origin:left;transition:width .1s linear,background .25s ease}
+.timer-fill.low{background:linear-gradient(90deg,#7e241b,var(--cinnabar),#df5c4a)}
+.battle-meta{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:11px;font-size:11px;color:var(--paper-dim);letter-spacing:.08em}
+.q-panel{padding:18px 0 0;position:relative}
+.q-no{font-family:var(--song);color:var(--cinnabar);font-size:12px;letter-spacing:.22em;margin-bottom:9px}
+.q-stem{
+  font-family:var(--song);font-size:clamp(20px,5.4vw,28px);line-height:1.65;letter-spacing:.035em;
+  margin:0 0 20px;min-height:2.5em;overflow-wrap:anywhere;
 }
-.section-header {
-  margin-bottom: 60px; display: flex; align-items: baseline; gap: 20px;
+.q-stem .num{color:var(--gold);letter-spacing:.02em}
+.options{display:grid;grid-template-columns:1fr;gap:9px}
+.option{
+  display:grid;grid-template-columns:26px minmax(0,1fr);align-items:center;gap:11px;
+  width:100%;padding:13px 12px;background:rgba(232,224,207,.025);border:1px solid var(--line-soft);
+  color:var(--paper);text-align:left;cursor:pointer;border-radius:0;
+  font-family:var(--kai);font-size:16px;line-height:1.55;letter-spacing:.04em;
+  transition:border-color .16s ease,background .16s ease;
 }
-.section-header h2 { font-size: 32px; font-weight: 700; letter-spacing: 2px; }
-.section-header span { color: var(--gold); font-size: 14px; letter-spacing: 2px; }
+.option:hover{border-color:rgba(201,162,39,.64);background:rgba(201,162,39,.055)}
+.option .mark{
+  width:24px;height:24px;border:1px solid rgba(201,162,39,.34);display:grid;place-items:center;
+  font-family:var(--song);font-size:12px;color:var(--gold);flex:none;
+}
+.option.correct{border-color:var(--jade);background:rgba(63,125,122,.15)}
+.option.correct .mark{border-color:var(--jade);color:var(--jade)}
+.option.wrong{border-color:var(--cinnabar);background:rgba(192,57,43,.12)}
+.option.wrong .mark{border-color:var(--cinnabar);color:var(--cinnabar)}
+.option:disabled{cursor:default}
+.feedback{border-top:1px solid var(--line);margin-top:16px;padding:15px 0 2px;animation:inkIn .25s ease-out both}
+.feedback.good{border-color:rgba(63,125,122,.65)}
+.feedback.bad{border-color:rgba(192,57,43,.65)}
+.q-panel .feedback{
+  position:fixed;left:0;right:0;bottom:0;z-index:20;width:100%;max-width:900px;margin:0 auto;
+  padding:14px 18px calc(14px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,rgba(20,17,15,.985),rgba(13,11,10,.99));
+  border:1px solid var(--line);border-bottom:0;box-shadow:0 -18px 44px rgba(0,0,0,.52);
+  max-height:52svh;overflow:auto;
+}
+.q-panel .feedback.good{border-color:rgba(63,125,122,.68);border-bottom:0}
+.q-panel .feedback.bad{border-color:rgba(192,57,43,.7);border-bottom:0}
+.q-panel .feedback .fb-actions{position:sticky;bottom:0;padding-top:9px;margin-top:8px;background:linear-gradient(180deg,transparent,rgba(13,11,10,.98) 34%)}
+.fb-line{font-family:var(--song);font-size:19px;letter-spacing:.08em;color:var(--gold);margin:0 0 5px}
+.feedback.bad .fb-line{color:var(--cinnabar)}
+.fb-teach{border-left:1px solid var(--line);padding-left:11px;margin-top:9px;color:var(--paper-dim);font-size:13.5px;line-height:1.85}
+.fb-teach b{color:var(--paper);font-weight:400;letter-spacing:.08em}
+.fb-actions{margin-top:12px;display:flex;gap:8px;justify-content:flex-end}
 
-.games-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;
-}
-/* 宽屏单列，类似原版大作占满屏幕 */
-.game-card {
-  position: relative; height: 600px; border-radius: 4px; overflow: hidden;
-  background: #111; border: 1px solid rgba(255,255,255,0.05);
-  display: flex; flex-direction: column; justify-content: flex-end;
-  cursor: pointer; group;
-}
-/* 卡片背景氛围 (模拟视频/大图效果) */
-.game-card::before {
-  content: ""; position: absolute; inset: 0;
-  background: 
-    radial-gradient(circle at 50% 20%, rgba(163, 51, 39, 0.15) 0%, transparent 60%),
-    linear-gradient(180deg, transparent 40%, #000 100%);
-  transition: transform 0.7s ease;
-  z-index: 1;
-}
-.game-card:hover::before {
-  transform: scale(1.05);
-}
-.game-card-content {
-  position: relative; z-index: 2; padding: 50px;
-}
-.game-card h3 {
-  font-size: 36px; margin-bottom: 10px; font-weight: 800;
-}
-.game-card .en-title {
-  font-size: 14px; color: var(--text-sub); letter-spacing: 2px; margin-bottom: 20px;
-}
-.game-tags {
-  display: flex; gap: 10px; margin-bottom: 25px;
-}
-.game-tags span {
-  font-size: 12px; padding: 4px 10px; border: 1px solid rgba(255,255,255,0.2);
-  color: #ccc;
-}
-.game-desc {
-  font-size: 14px; color: #888; max-width: 500px; line-height: 1.8; margin-bottom: 30px;
-  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
-}
+.battle-foot{margin-top:22px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--line-soft);padding-top:11px}
+.battle-foot .tiny{color:rgba(232,224,207,.32)}
 
-/* ===================== 团队介绍 (About) ===================== */
-.about-section {
-  padding: 120px 5vw; background: #050505;
-  border-top: 1px solid rgba(255,255,255,0.05);
+/* ——— 结算 ——— */
+.result{min-height:calc(100vh - 20px);min-height:calc(100svh - 20px);display:flex;flex-direction:column;justify-content:center;padding-top:28px;padding-bottom:30px}
+.verdict-wrap{text-align:center;position:relative;padding:6px 0 16px}
+.verdict{
+  width:104px;height:104px;margin:0 auto 14px;display:grid;place-items:center;
+  font-family:var(--song);font-size:56px;line-height:1;color:var(--paper);
+  border:3px double rgba(243,234,216,.8);background:var(--cinnabar);
+  box-shadow:inset 0 0 0 4px var(--cinnabar),inset 0 0 0 5px rgba(243,234,216,.5),0 16px 40px rgba(192,57,43,.2);
+  animation:stampIn .36s ease-out both;
 }
-.about-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
-}
-.about-text h2 {
-  font-size: 32px; margin-bottom: 30px; font-weight: 700;
-}
-.about-text p {
-  font-size: 15px; color: var(--text-sub); margin-bottom: 20px; line-height: 1.9;
-}
-.about-visual {
-  height: 400px; border: 1px solid rgba(255,255,255,0.1);
-  display: flex; flex-direction: column; justify-content: center; align-items: center;
-  background: linear-gradient(45deg, #0a0a0a, #111);
-  position: relative;
-}
-.about-visual::before {
-  content: "BREAKON"; position: absolute; font-size: 60px; font-weight: 900;
-  color: rgba(255,255,255,0.02); letter-spacing: 10px;
-}
+.verdict.lose{background:#3a2b27;color:var(--paper-dim);box-shadow:inset 0 0 0 4px #3a2b27,inset 0 0 0 5px rgba(232,224,207,.24)}
+.result-title{font-family:var(--song);font-size:clamp(21px,5.7vw,29px);letter-spacing:.1em;margin:4px 0 5px;line-height:1.55}
+.stars{letter-spacing:.25em;color:var(--gold);font-size:27px;line-height:1.4}
+.stars .off{color:rgba(232,224,207,.18)}
+.result-sub{color:var(--paper-dim);font-size:12px;letter-spacing:.12em}
+.result-close{border-top:1px solid var(--line);border-bottom:1px solid var(--line-soft);padding:17px 0;margin:18px 0;font-size:15px;line-height:2;color:rgba(232,224,207,.9);letter-spacing:.06em}
+.hook{border-left:2px solid var(--cinnabar);padding:3px 0 3px 13px;margin:15px 0 18px;font-size:13px;color:var(--paper-dim);line-height:1.9}
+.hook b{color:var(--gold);font-weight:400;letter-spacing:.08em}
+.reward-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line-soft)}
+.reward{padding:10px 8px;text-align:center;border-right:1px solid var(--line-soft);min-width:0}
+.reward:last-child{border-right:0}
+.reward .k{font-size:10.5px;letter-spacing:.12em;color:var(--paper-dim);display:block}
+.reward .v{font-family:var(--song);font-size:18px;color:var(--gold)}
+.mistake-mini{border:1px solid var(--line-soft);margin-top:15px}
+.mistake-mini .mm-head{padding:8px 10px;border-bottom:1px solid var(--line-soft);font-size:11px;letter-spacing:.15em;color:var(--paper-dim)}
+.mm{padding:10px;border-bottom:1px solid rgba(232,224,207,.06);font-size:12.5px;line-height:1.75}
+.mm:last-child{border-bottom:0}
+.mm .q{color:rgba(232,224,207,.78);overflow-wrap:anywhere}
+.mm .a{color:var(--jade);margin-top:3px}
+.mm .t{color:var(--paper-dim);margin-top:2px}
+.result-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px}
+.result-actions .span2{grid-column:1/-1}
+.growth-note{text-align:center;color:var(--gold);font-size:12px;letter-spacing:.11em;margin-top:12px}
 
-/* ===================== 页脚 ===================== */
-.footer {
-  padding: 60px 5vw; border-top: 1px solid rgba(255,255,255,0.05);
-  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
-  font-size: 13px; color: #666;
+/* ——— 唤灵 ——— */
+.shop-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:18px 0 4px}
+.shop-title{font-family:var(--song);font-size:clamp(28px,7vw,42px);letter-spacing:.16em;margin:0;font-weight:400}
+.shop-sub{color:var(--paper-dim);font-size:12px;letter-spacing:.08em;line-height:1.75;max-width:34em}
+.prob-panel{border:1px solid var(--line);padding:12px 13px;margin:15px 0;background:linear-gradient(180deg,rgba(201,162,39,.045),transparent)}
+.prob-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin:8px 0}
+.prob{padding:6px 2px;text-align:center;border-right:1px solid var(--line-soft)}
+.prob:last-child{border-right:0}
+.prob .r{display:block;font-family:var(--song);font-size:16px;letter-spacing:.08em}
+.prob .p{display:block;font-size:11.5px;color:var(--paper-dim)}
+.rank-huang{color:#b08d3c}.rank-xuan{color:#748a88}.rank-di{color:var(--jade)}.rank-tian{color:var(--gold)}
+.prob-note{font-size:10.5px;line-height:1.8;color:var(--paper-dim);letter-spacing:.03em}
+.prob-note b{color:var(--paper);font-weight:400}
+.summon-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0}
+.summon-actions .btn{min-height:56px;flex-direction:column;gap:2px;line-height:1.25;letter-spacing:.12em}
+.summon-actions .btn small{font-size:10.5px;color:currentColor;opacity:.65;letter-spacing:.05em}
+.charm-row{display:flex;gap:8px;justify-content:center;margin-top:-2px}
+.charm-row .linkish{font-size:11px;color:var(--paper-dim)}
+.charm-row .linkish:disabled{opacity:.35;cursor:not-allowed}
+.pull-result-title{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--line);padding-top:12px;margin:20px 0 10px}
+.pull-result-title h3{font-family:var(--song);font-size:16px;letter-spacing:.15em;font-weight:400;margin:0;color:var(--gold)}
+.pull-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.pull-grid.many{grid-template-columns:repeat(2,minmax(0,1fr))}
+.card{
+  position:relative;width:100%;min-height:112px;padding:11px 10px 9px;text-align:left;
+  border:1px solid var(--line-soft);background:
+    linear-gradient(160deg,rgba(232,224,207,.055),transparent 45%),
+    rgba(232,224,207,.018);
+  color:var(--paper);cursor:pointer;overflow:hidden;border-radius:0;
+  transition:border-color .18s ease,background .18s ease;
 }
-.footer-links { display: flex; gap: 20px; }
-.footer-links a:hover { color: #fff; }
+.card:hover{border-color:rgba(201,162,39,.58);background-color:rgba(201,162,39,.035)}
+.card::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--rankcolor,var(--line));
+}
+.card .c-rank{
+  position:absolute;right:7px;top:7px;font-family:var(--song);font-size:10.5px;
+  border:1px solid currentColor;padding:0 4px;color:var(--rankcolor,var(--paper-dim));opacity:.9;
+}
+.card .c-big{
+  position:absolute;right:4px;bottom:-13px;font-family:var(--song);font-size:74px;line-height:1;
+  color:rgba(232,224,207,.035);pointer-events:none;
+}
+.card .c-name{display:block;font-family:var(--song);font-size:17px;letter-spacing:.09em;margin-right:28px;position:relative;z-index:1}
+.card .c-quote{display:block;font-size:11px;line-height:1.55;color:rgba(232,224,207,.64);margin-top:5px;position:relative;z-index:1;min-height:32px;letter-spacing:.01em}
+.card .c-foot{display:flex;justify-content:space-between;gap:5px;margin-top:4px;font-size:9.5px;color:rgba(232,224,207,.38);position:relative;z-index:1}
+.card .c-stars{color:var(--gold);letter-spacing:.1em;font-size:11px}
+.card.locked{opacity:.4}
+.card.dupe{opacity:.78}
+.card .dupe-tag{color:var(--cinnabar);font-size:9.5px}
+.card.new .c-name::after{content:"新";font-family:var(--kai);font-size:9px;color:var(--ink);background:var(--gold);padding:0 3px;margin-left:6px;vertical-align:2px;letter-spacing:0}
+.rankborder-huang{--rankcolor:#b08d3c}.rankborder-xuan{--rankcolor:#748a88}.rankborder-di{--rankcolor:var(--jade)}.rankborder-tian{--rankcolor:var(--gold)}
+.roster-head{display:flex;justify-content:space-between;align-items:end;gap:10px;border-top:1px solid var(--line);padding-top:16px;margin-top:20px}
+.roster-head h3{font-family:var(--song);font-weight:400;font-size:18px;letter-spacing:.14em;margin:0}
+.roster-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:11px}
+.roster-grid .card{min-height:100px}
+.star-shop-line{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--paper-dim);border:1px solid var(--line-soft);padding:8px 10px;margin-top:12px}
 
-/* ===================== 滚动动画 ===================== */
-.reveal {
-  opacity: 0; transform: translateY(30px); transition: all 1s ease;
-}
-.reveal.active {
-  opacity: 1; transform: translateY(0);
-}
+/* ——— 助战 ——— */
+.assist-slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
+.slot{min-height:96px;border:1px dashed rgba(201,162,39,.33);padding:9px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;color:var(--paper-dim);font-size:11px;gap:3px;cursor:pointer;background:rgba(232,224,207,.012)}
+.slot.filled{border-style:solid;border-color:var(--line);color:var(--paper);align-items:flex-start;text-align:left}
+.slot .s-name{font-family:var(--song);font-size:14px;letter-spacing:.05em}
+.slot .s-eff{font-size:10px;color:var(--gold)}
+.assist-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}
+.assist-grid .card{padding:10px 9px;min-height:88px}
+.assist-grid .c-quote{display:none}
+.assist-bonus{border:1px solid var(--line);padding:11px 13px;margin:14px 0;background:rgba(201,162,39,.025)}
+.assist-bonus .ab-row{display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0;color:var(--paper-dim)}
+.assist-bonus .ab-row b{color:var(--gold);font-weight:400}
+.owned-tag{color:var(--jade);font-size:9.5px;border:1px solid rgba(63,125,122,.44);padding:0 3px}
 
-/* ===================== 响应式 ===================== */
-@media (max-width: 768px) {
-  .nav-links { display: none; }
-  .hero { padding: 0 24px; }
-  .games-grid { grid-template-columns: 1fr; }
-  .game-card { height: 500px; }
-  .game-card-content { padding: 30px; }
-  .about-grid { grid-template-columns: 1fr; gap: 40px; }
-  .about-visual { height: 300px; }
-  .footer { flex-direction: column; gap: 20px; text-align: center; }
+/* ——— 业障簿 / 家长 ——— */
+.book-head{margin:18px 0 14px}
+.book-title{font-family:var(--song);font-size:clamp(28px,7vw,40px);letter-spacing:.18em;font-weight:400;margin:0}
+.book-sub{font-size:12px;color:var(--paper-dim);margin-top:4px}
+.entry{border-bottom:1px solid var(--line-soft);padding:14px 0;position:relative}
+.entry .e-meta{font-size:10px;color:var(--paper-dim);letter-spacing:.1em;margin-bottom:4px}
+.entry .e-q{font-size:14.5px;line-height:1.8;color:rgba(232,224,207,.9);overflow-wrap:anywhere}
+.entry .e-a{color:var(--jade);font-size:13px;margin-top:4px}
+.entry .e-t{color:var(--paper-dim);font-size:12px;line-height:1.75;margin-top:3px;border-left:1px solid var(--line);padding-left:9px}
+.empty-box{border:1px solid var(--line-soft);padding:28px 16px;text-align:center;color:var(--paper-dim);font-size:13px;line-height:2}
+.parent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line);margin:16px 0}
+.parent-stat{padding:14px 8px;text-align:center;border-right:1px solid var(--line-soft);min-width:0}
+.parent-stat:last-child{border-right:0}
+.parent-stat .v{font-family:var(--song);font-size:24px;color:var(--gold);line-height:1.2}
+.parent-stat .k{font-size:10.5px;color:var(--paper-dim);letter-spacing:.08em}
+.mastery{margin:8px 0}
+.mastery-row{padding:8px 0;border-bottom:1px solid rgba(232,224,207,.06)}
+.mastery-top{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--paper-dim)}
+.mastery-top b{color:var(--paper);font-weight:400}
+.mastery-bar{height:4px;background:rgba(232,224,207,.08);margin-top:5px;overflow:hidden}
+.mastery-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--jade),var(--gold));width:0}
+.week-bars{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;align-items:end;height:114px;border-bottom:1px solid var(--line-soft);padding:0 2px 0;margin:12px 0 5px}
+.wbar{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;height:100%;min-width:0}
+.wbar i{display:block;width:100%;max-width:22px;background:linear-gradient(180deg,var(--gold),rgba(63,125,122,.5));min-height:1px}
+.wbar span{font-size:9px;color:var(--paper-dim);line-height:1.3}
+.parent-note{font-size:10.5px;line-height:1.8;color:rgba(232,224,207,.36);margin-top:15px}
+.danger-zone{border:1px solid rgba(192,57,43,.24);padding:11px;margin-top:22px}
+.danger-zone .tiny{color:rgba(232,224,207,.36)}
+.danger-zone .btn{margin-top:7px}
+
+/* ——— 弹层 / 提示 / 唤灵动效 ——— */
+.modal-root{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:18px;background:rgba(5,4,3,.78);backdrop-filter:blur(3px);animation:inkIn .2s ease-out both}
+.modal-sheet{
+  width:100%;max-width:430px;max-height:88svh;overflow:auto;background:
+    linear-gradient(180deg,rgba(232,224,207,.04),transparent 34%),var(--ink2);
+  border:1px solid var(--line);box-shadow:var(--shadow);padding:20px;position:relative;
+  animation:inkIn .24s ease-out both;
+}
+.modal-sheet::before{content:"";position:absolute;inset:5px;border:1px solid rgba(201,162,39,.1);pointer-events:none}
+.modal-close{position:sticky;top:0;float:right;z-index:2;margin:-8px -8px 0 0}
+.modal-title{font-family:var(--song);font-size:23px;letter-spacing:.14em;margin:0 0 5px;font-weight:400;padding-right:30px}
+.modal-kicker{font-size:10.5px;color:var(--paper-dim);letter-spacing:.18em;margin-bottom:12px}
+.modal-text{font-size:13.5px;line-height:1.9;color:var(--paper-dim)}
+.modal-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.modal-actions .btn{flex:1}
+.card-detail-top{display:flex;gap:14px;align-items:flex-start}
+.card-glyph{width:68px;height:92px;border:1px solid var(--rankcolor,var(--line));display:grid;place-items:center;font-family:var(--song);font-size:36px;color:var(--rankcolor,var(--gold));flex:none;background:rgba(232,224,207,.02)}
+.card-detail-info{min-width:0}
+.card-detail-name{font-family:var(--song);font-size:27px;letter-spacing:.1em;line-height:1.3}
+.card-detail-rank{font-size:11px;letter-spacing:.16em;color:var(--rankcolor,var(--gold))}
+.card-quote{border-left:2px solid var(--rankcolor,var(--gold));padding-left:10px;font-size:13px;line-height:1.8;color:var(--paper-dim);margin:13px 0}
+.effect-box{border:1px solid var(--line-soft);padding:9px 10px;font-size:12px;color:var(--paper-dim);line-height:1.75}
+.effect-box b{color:var(--gold);font-weight:400}
+.starup-box{border-top:1px solid var(--line);margin-top:14px;padding-top:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.starup-box .tiny{color:var(--paper-dim)}
+.fx{position:fixed;inset:0;z-index:60;pointer-events:none;display:grid;place-items:center}
+.summon-fx{width:194px;height:194px;display:grid;place-items:center;position:relative;background:rgba(232,224,207,.035);border:1px solid rgba(201,162,39,.2)}
+.summon-fx .paper{position:absolute;inset:17px;border:1px solid rgba(232,224,207,.15);background:linear-gradient(145deg,rgba(232,224,207,.07),transparent)}
+.summon-fx .seal{
+  width:86px;height:86px;display:grid;place-items:center;background:var(--cinnabar);color:var(--paper);
+  font-family:var(--song);font-size:34px;border:3px double rgba(243,234,216,.8);
+  box-shadow:inset 0 0 0 4px var(--cinnabar),inset 0 0 0 5px rgba(243,234,216,.4);
+  animation:stampIn .36s ease-out both;position:relative;z-index:2;
+}
+.golddust span{position:absolute;left:50%;top:50%;width:3px;height:3px;background:var(--gold);border-radius:50%;animation:dustOut .36s ease-out both}
+.toast{
+  position:fixed;left:50%;bottom:24px;z-index:80;transform:translateX(-50%) translateY(8px);
+  max-width:calc(100% - 32px);padding:9px 15px;border:1px solid var(--line);
+  background:rgba(13,11,10,.96);color:var(--paper);font-size:12.5px;letter-spacing:.06em;
+  opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;box-shadow:var(--shadow);
+  text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.warn{border-color:rgba(192,57,43,.6);color:#e3b5aa}
+.sweep{position:relative;overflow:hidden}
+.sweep::after{
+  content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 30%,rgba(201,162,39,.12) 50%,transparent 70%);
+  animation:goldSweep .4s ease-out both;pointer-events:none;
+}
+.stamp{animation:stampIn .36s ease-out both}
+
+/* ——— 宽屏 / 窄屏 ——— */
+@media (min-width:620px){
+  .wrap{padding:28px 28px 48px}
+  .options{grid-template-columns:1fr 1fr}
+  .q-stem{min-height:2.8em}
+  .pull-grid.many{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .roster-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .assist-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .story-actions{flex-direction:row}
+  .story-actions .btn{flex:1}
+  .result-actions{grid-template-columns:1fr 1fr 1fr}
+  .result-actions .span2{grid-column:auto}
+  .summon-actions{grid-template-columns:1fr 1fr}
+  .chapter{grid-template-columns:48px minmax(0,1fr) auto auto;padding:16px 4px}
+  .ch-no{width:42px;height:42px}
+  .ch-title{font-size:20px}
+  .home-actions{flex-direction:row}
+  .home-actions .btn{flex:1}
+  .battle-top{gap:14px}
+  .fighter{padding:12px 14px}
+}
+@media (max-width:430px){
+  .wrap{padding-left:14px;padding-right:14px}
+  .home{padding-left:14px;padding-right:14px}
+  .title-main{letter-spacing:.09em}
+  .title-sub{letter-spacing:.34em}
+  .vertical-whisper{display:none}
+  .verdict{width:90px;height:90px;font-size:48px}
+  .resource-cell .v{font-size:15px}
+  .summon-actions .btn{font-size:13px;letter-spacing:.07em}
+  .prob .r{font-size:14px}
+  .card .c-name{font-size:15.5px}
+  .battle-top{grid-template-columns:1fr 1fr;gap:8px}
+  .fighter .f-n{font-size:14px}
+  .pip{width:8px;height:13px}
+  .chapter{grid-template-columns:36px minmax(0,1fr) auto;gap:10px}
+  .chapter::after{display:none}
+  .ch-no{width:32px;height:32px;font-size:13px}
+  .ch-title{font-size:16.5px}
+  .ch-meta{font-size:10.5px}
+  .result-actions{grid-template-columns:1fr 1fr}
+  .result-actions .span2{grid-column:1/-1}
+}
+@media (max-width:340px){
+  .title-main{font-size:46px}
+  .wrap{padding-left:12px;padding-right:12px}
+  .pull-grid,.roster-grid,.assist-grid{grid-template-columns:1fr 1fr}
+  .assist-slots{gap:5px}
 }
 </style>
 </head>
 <body>
+<div id="app"><div id="view" class="view"></div></div>
+<div id="fx" class="fx" aria-live="polite"></div>
+<div id="modal" class="modal-root" hidden></div>
+<div id="toast" class="toast" role="status"></div>
+<noscript><div style="padding:30px;color:#e8e0cf;font-family:serif">此卷要借 JavaScript 才写得开。</div></noscript>
+<script>
+/* ============================================================
+   数术西行 · 天书残卷
+   数据 / 出题 / 战斗 / 唤灵 / 养成 / 渲染 / 存档
+   ============================================================ */
+"use strict";
+/* ——— 一、数据 ——— */
+const SAVE_KEY = 'xiyou_shushu_v1';
+const MAX_QI = 5;
+const QUESTION_SECONDS = 45;
+const CN_NUM = ['零','壹','贰','叁','肆','伍','陆','柒','捌','玖','拾'];
 
-<!-- ===================== 导航 ===================== -->
-<header class="header" id="header">
-  <div class="nav-logo">
-    <img src="https://cdn.luogu.com.cn/upload/image_hosting/lx0x0i25.webp" alt="Breakon Logo" />
-    <span>BREAKON</span>
-  </div>
-  <ul class="nav-links">
-    <li><a href="#about">团队介绍</a></li>
-    <li><a href="#games" class="highlight">刃与牢：旧都魂谣</a></li>
-  </ul>
-</header>
+const RANK_META = {
+  '黄': {order:1, cls:'rank-huang', border:'rankborder-huang', dupe:2, prob:0.50},
+  '玄': {order:2, cls:'rank-xuan', border:'rankborder-xuan', dupe:4, prob:0.35},
+  '地': {order:3, cls:'rank-di', border:'rankborder-di', dupe:8, prob:0.13},
+  '天': {order:4, cls:'rank-tian', border:'rankborder-tian', dupe:15, prob:0.02}
+};
 
-<!-- ===================== 首屏 Hero ===================== -->
-<section class="hero">
-  <div class="hero-bg"></div>
-  <div class="hero-content">
-    <div class="hero-subtitle">Breakon Game Studio</div>
-    <h1 class="hero-title">东方武侠，<br>蒸汽幻想。</h1>
-    <p class="hero-desc">
-      我们是一支专注于动作游戏开发的独立团队。<br>
-      致力于将传统武术的见招拆招，与蒸汽机械的硬核美学相结合。
-    </p>
-    <a href="#games" class="btn gold">探索作品</a>
-  </div>
-</section>
+const CARDS = [
+  {id:'nezha', name:'哪吒', rank:'天', faction:'神将', assist:'crit', base:3, quote:'敢把天捅破，就敢把数算平。'},
+  {id:'erlang', name:'二郎神', rank:'天', faction:'神将', assist:'crit', base:3, quote:'第三只眼，只盯你算错的那步。'},
+  {id:'niumo', name:'牛魔王', rank:'天', faction:'妖王', assist:'incense', base:10, quote:'力大不算赢。算准才算。'},
+  {id:'jingubang', name:'金箍棒', rank:'天', faction:'法宝', assist:'qi', base:1, quote:'长短可变。斤两不虚。'},
+  {id:'qitian', name:'齐天大圣', rank:'天', faction:'神将', assist:'crit', base:3, quote:'天也压不住。一笔也不让。'},
+  {id:'chiguo', name:'持国天王', rank:'地', faction:'神将', assist:'incense', base:8, quote:'弦紧一分，数稳一分。'},
+  {id:'zengzhang', name:'增长天王', rank:'地', faction:'神将', assist:'crit', base:2, quote:'剑快，不如数准。'},
+  {id:'guangmu', name:'广目天王', rank:'地', faction:'神将', assist:'crit', base:2, quote:'看得远，不如看得清。'},
+  {id:'duowen', name:'多闻天王', rank:'地', faction:'神将', assist:'incense', base:8, quote:'听风，也听漏掉的那一数。'},
+  {id:'baigujing', name:'白骨精', rank:'地', faction:'妖王', assist:'crit', base:2, quote:'三张脸，一张账。'},
+  {id:'longwang', name:'龙王', rank:'玄', faction:'神将', assist:'incense', base:6, quote:'水里也有账。一笔不赖。'},
+  {id:'taibai', name:'太白金星', rank:'玄', faction:'神将', assist:'qi', base:1, quote:'天上事多。先算清再开口。'},
+  {id:'huangfeng', name:'黄风怪', rank:'玄', faction:'妖王', assist:'crit', base:2, quote:'风迷眼，迷不了账。'},
+  {id:'honghaier', name:'红孩儿', rank:'玄', faction:'妖王', assist:'incense', base:6, quote:'火候不到，数先到。'},
+  {id:'bajiaoshan', name:'芭蕉扇', rank:'玄', faction:'法宝', assist:'qi', base:1, quote:'一扇火退。再扇账清。'},
+  {id:'zijing', name:'紫金葫芦', rank:'玄', faction:'法宝', assist:'incense', base:6, quote:'叫一声，应一声。数不能错。'},
+  {id:'xiezijing', name:'蝎子精', rank:'玄', faction:'妖王', assist:'crit', base:2, quote:'尾巴有毒。数比尾巴毒。'},
+  {id:'dingfeng', name:'定风丹', rank:'黄', faction:'法宝', assist:'qi', base:1, quote:'风停时，才听得见算错没有。'},
+  {id:'zhaoyao', name:'照妖镜', rank:'黄', faction:'法宝', assist:'crit', base:1, quote:'镜里是妖。镜外是题。'},
+  {id:'tianpeng', name:'天蓬元帅', rank:'黄', faction:'神将', assist:'incense', base:4, quote:'九齿钉耙，一齿一算。'},
+  {id:'juanlian', name:'卷帘大将', rank:'黄', faction:'神将', assist:'qi', base:1, quote:'帘子后面，账要见光。'},
+  {id:'longnv', name:'龙女', rank:'黄', faction:'神将', assist:'incense', base:4, quote:'海再大，也是数出来的。'},
+  {id:'zhizhu', name:'蜘蛛精', rank:'黄', faction:'妖王', assist:'crit', base:1, quote:'一根丝，一笔租。'},
+  {id:'qingshi', name:'青狮', rank:'黄', faction:'妖王', assist:'incense', base:4, quote:'一口吞山。吞不下数。'}
+];
 
-<!-- ===================== 理念 (Mission) ===================== -->
-<section class="mission reveal">
-  <h2>做最硬核的东方动作游戏</h2>
-  <p>我们既对快意恩仇的武侠充满向往，也对齿轮咬合的工业时代抱有浓厚兴趣。在历史交错的废墟上，修补新的幻想。</p>
-</section>
+const VOLUMES = [
+  {
+    n:1, title:'五行山 · 镇字', topic:'万以内加减法', short:'加减', guard:'山神石敢当', qi:6,
+    intro:'山压了五百年，草把碑上的字都吃了。你到时，石壁正渗水，水珠落地，却不响。悟空蹲在崖上，用棍子拨云。拨了三下，云散成七块，又慢慢合回去。他说，数乱了。山脚有块残碑，碑上只剩半个「镇」字。你伸手，指尖沾了一点金。',
+    lines:[
+      ['悟空','你也看得见？'],
+      ['你','看得见。'],
+      ['悟空','那就走。丑话说前头，俺不背人。'],
+      ['你','不用背。你护法，我落笔。']
+    ],
+    close:'石敢当散作碎石。缺的那半边，补回一个「镇」字。山没有轻，路却从脚下一步一步露出来了。',
+    hook:'前面那股味儿……不是妖气，是人味。'
+  },
+  {
+    n:2, title:'高老庄 · 夜账', topic:'多位数乘一位数', short:'乘法', guard:'猪八戒', qi:6,
+    intro:'高老庄的灯亮了一夜。账房的门从里头闩着，窗纸上有人影来回走，走得比更漏还慢。八戒把米袋藏在梁上，藏一袋，数一袋，数到第八袋就停。第八袋底下没有米，只有一张契。契上写：借一石，还三斗。你闻见新谷的香，也闻见霉味。',
+    lines:[
+      ['八戒','天书选的？看着不像。'],
+      ['你','账也不像。'],
+      ['八戒','嘿。那你来算。算错一斗，俺扣你一斗。'],
+      ['你','算对，你开仓。']
+    ],
+    close:'仓门开了。梁上第八袋是空的，契却重了。八戒把斗往地上一顿，说，这笔先欠着，来日再算。',
+    hook:'那契上的手印，少了半枚。'
+  },
+  {
+    n:3, title:'流沙河 · 一瓢', topic:'除数是一位数的除法', short:'除法', guard:'河妖水猿', qi:6,
+    intro:'流沙河不流。水像一块旧铜，沉在河床里。河心有只木瓢，一沉一浮，瓢里盛着半口水，不洒。水猿蹲在岸边，把石子一颗一颗数进河里，数到第七颗就忘，又从第一颗数起。他说，他只要一瓢。可这一瓢，量的是整条河。',
+    lines:[
+      ['水猿','一瓢。多一滴也不要。'],
+      ['你','瓢有多大？'],
+      ['水猿','你算得出，就归你。'],
+      ['悟空','算不出，俺把河掀了。']
+    ],
+    close:'水猿退进河心。木瓢沉下去，又浮上来，盛满了。河还是那条河，只是今夜，它开始流了。',
+    hook:'河底有铁链响。不是水声。'
+  },
+  {
+    n:4, title:'白虎岭 · 三变', topic:'倍的认识', short:'倍数', guard:'白骨精', qi:6,
+    intro:'白虎岭上没虎，只有三间空屋。第一间有粥，第二间有药，第三间有寿衣。粥是热的，药是温的，寿衣上落了新雪。悟空说，别闻。白骨精在屋后笑，笑声像三片瓦，一片一片往下掉。她每掉一片，就换一张脸。',
+    lines:[
+      ['白骨精','你看我像谁？'],
+      ['你','像一个人算错的数。'],
+      ['白骨精','牙尖。'],
+      ['悟空','他嘴笨。手不笨。']
+    ],
+    close:'三间屋塌成三堆白骨。粥还是热的。你把粥倒进土里，土里慢慢长出一株白花。没有风，花却动了。',
+    hook:'第三张脸，你见过。在镜子里。'
+  },
+  {
+    n:5, title:'火焰山 · 四十九扇', topic:'时、分、秒，年、月、日', short:'时辰', guard:'红孩儿', qi:6,
+    intro:'火焰山的火不往上烧，往人心里钻。红孩儿坐在火尖上，手里一把蒲扇。扇一下，火退三尺；再扇一下，又进五尺。他说，扇四十九下，山就凉。你数到第四十八下，他换了手。时间从他指缝里漏下去，落在地上，烫出一个个小洞。',
+    lines:[
+      ['红孩儿','你会数数？'],
+      ['你','会数你漏掉的那一下。'],
+      ['红孩儿','有意思。那你来扇。'],
+      ['悟空','扇错一下，俺替你挨。']
+    ],
+    close:'第四十九扇落下，火缩成一颗豆。红孩儿坐在豆上，不笑了。山风一过，豆凉了，天也暗了。',
+    hook:'扇子背面，刻着半个「无」字。'
+  },
+  {
+    n:6, title:'通天河 · 冰面', topic:'长度与质量单位换算', short:'单位', guard:'灵感大王', qi:6,
+    intro:'通天河冻了三尺。冰下有影，影比鱼大。灵感大王把秤挂在冰上，秤钩空着，秤砣却一直往下坠。他说，过河可以，先称一称你的魂。冰面裂开一道白线，像谁用指甲划的。你看见白线尽头，摆着一排旧尺，尺上的刻度都磨平了。',
+    lines:[
+      ['灵感大王','斤两不说，别想过河。'],
+      ['你','你的秤，先称自己。'],
+      ['灵感大王','嘴硬。秤不硬。'],
+      ['悟空','俺的棍子也不硬。打你够用。']
+    ],
+    close:'秤砣落进冰窟，河面合拢。冰下那道人影翻了个身，往深处去了。旧尺浮上来，刻痕新了。',
+    hook:'冰下有人敲了三下。'
+  },
+  {
+    n:7, title:'盘丝洞 · 千丝', topic:'周长', short:'周长', guard:'蜘蛛精', qi:6,
+    intro:'盘丝洞的丝不从蜘蛛来，从账本来。一根丝一个数，数错了，丝就缠紧一寸。蜘蛛精在洞底织一张大网，网上挂满露珠，每颗露珠里都有一间小房子。她说，她不杀生，只收租。租是一圈边，少一寸也不行。悟空拿棍子挑丝，丝断了，又长出来。',
+    lines:[
+      ['蜘蛛精','一圈边。你量得清么？'],
+      ['你','量得清。你的网先少了一角。'],
+      ['蜘蛛精','眼利。可惜手慢。'],
+      ['悟空','他手慢。俺手不慢。']
+    ],
+    close:'网破了。露珠落地，碎成许多小房子，屋里都亮着灯。蜘蛛精缩回洞底，把账本合上，再没出声。',
+    hook:'网中央空着一个洞。正好人形。'
+  },
+  {
+    n:8, title:'狮驼岭 · 分山', topic:'面积', short:'面积', guard:'青狮、白象、大鹏', qi:6,
+    intro:'狮驼岭把一座山分成三份。青狮要山头，白象要山腰，大鹏要山脚。分来分去，山少了一块。三个妖王坐在缺口边上，互相说对方多拿了。悟空拿棍子量了量，说，别量了，量不清。你蹲下去，看那道缺口，像一个没写完的「面」字，缺的正是中间一横。',
+    lines:[
+      ['青狮','山头归我。'],
+      ['白象','山腰归我。'],
+      ['大鹏','山脚归我。'],
+      ['你','山呢？']
+    ],
+    close:'三个妖王各退一步，山合上了。缺口里露出一座城，城里的人正在晒谷。你听见鸡叫，也听见有人在数数。',
+    hook:'缺口底下，压着一整座城。'
+  },
+  {
+    n:9, title:'女儿国 · 分饼', topic:'分数初步', short:'分数', guard:'蝎子精', qi:6,
+    intro:'女儿国的饼不分给男人，分给数。一张饼切八份，国王吃一份，剩七份；再切一刀，七份变十四份，国王还是吃一份。蝎子精坐在饼案后头，拿尾巴蘸蜜，在案上写：一半。子母河的水在窗外响，像有人在数数，数到一半就停了。',
+    lines:[
+      ['蝎子精','一半。你分得匀么？'],
+      ['你','分得匀。你先把手从饼上拿开。'],
+      ['蝎子精','小气。'],
+      ['悟空','他小气。俺大方。俺一棍子分两半。']
+    ],
+    close:'饼分完，每人一份，不多不少。蝎子精舔掉蜜字，钻进地缝。国王把最后一份，留给了城外的人。',
+    hook:'蜜写的字，被谁舔去了一半。'
+  },
+  {
+    n:10, title:'灵山 · 归位', topic:'综合', short:'综合', guard:'无算', qi:6,
+    intro:'灵山没有山门。你走到最后一级石阶，石阶自己退了。无算坐在云上，面前摊着十卷残书，每一卷都缺一页。他是上一任执笔人，算错一题，同门尽死，从此说数不可信，撕了书。他不看你，只看你手里的笔。风从山下上来，残页哗哗响，像很多人在翻同一本书。',
+    lines:[
+      ['无算','一题。只要错一题，就够了。'],
+      ['你','那就再算一题。'],
+      ['无算','你也会错。'],
+      ['悟空','他会错。俺会打。够了。']
+    ],
+    close:'十卷合拢，天书归位。无算散成一场墨雨，落在灵山的石阶上。你收起笔，山门这才出现。',
+    hook:'山门后头，有人喊你从前的名字。'
+  }
+];
 
-<!-- ===================== 作品展示 ===================== -->
-<section class="games-section" id="games">
-  <div class="section-header reveal">
-    <h2>代表作品</h2>
-    <span>PROJECTS</span>
-  </div>
-  
-  <div class="games-grid">
-    <!-- 作品卡片 -->
-    <div class="game-card reveal">
-      <div class="game-card-content">
-        <h3>刃与牢：旧都魂谣</h3>
-        <div class="en-title">Blade & Cage: Requiem of the Old Capital</div>
-        <div class="game-tags">
-          <span>功夫动作</span>
-          <span>2D 横版</span>
-          <span>蒸汽朋克</span>
-        </div>
-        <p class="game-desc">
-          在衰败的旧都，你将扮演一名身陷囹圄的武者。面对装备着火枪与重型机械的压迫者，凭借拳脚与冷兵器的精准见招拆招。肉身苦弱，但武者的气节，比齿轮更坚硬。
-        </p>
-        <button class="btn">了解详情</button>
+const REALMS = [
+  {name:'定心', note:'心不飘，数才不晃。'},
+  {name:'凝神', note:'进位退位，都在眼里。'},
+  {name:'通脉', note:'数在指间走，不在纸上爬。'},
+  {name:'开窍', note:'一道题几条路，你开始看得见。'},
+  {name:'金身', note:'错也伤不了你。还能再算。'},
+  {name:'神通', note:'题没读完，路已经现了。'},
+  {name:'斗战', note:'快不是本事。准才是。'},
+  {name:'齐天', note:'山挡路，就把山算平。'},
+  {name:'大圣', note:'数还是那些数。你已不是昨天的你。'}
+];
+
+const WRONG_LINES = ['停。','断了。再来。','这一步，走偏了。'];
+const RIGHT_LINES = ['干净。','算得准。','这一下落得稳。','嗯。'];
+
+const DEFAULT_STATE = {
+  v:1,
+  started:false,
+  name:'无名',
+  unlocked:1,
+  best:{},
+  completed:{},
+  incense:100,
+  charms:1,
+  starGlow:0,
+  cards:{},
+  assists:[],
+  level:1,
+  exp:0,
+  pity:0,
+  pulls:0,
+  wrong:[],
+  audio:false,
+  stats:{answers:0, correct:0, byVol:{}, daily:{}}
+};
+
+/* ——— 二、小工具 ——— */
+const $ = (sel, root) => (root || document).querySelector(sel);
+const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const shuffle = arr => {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cardById = id => CARDS.find(c => c.id === id);
+const rankOrder = r => RANK_META[r] ? RANK_META[r].order : 0;
+
+function cardStars(id){
+  return S.cards[id] && S.cards[id].stars ? S.cards[id].stars : 0;
+}
+function starMult(stars){
+  return 1 + 0.2 * Math.max(0, stars - 1);
+}
+function starText(stars){
+  let s = '';
+  for (let i = 1; i <= 5; i++) s += i <= stars ? '★' : '☆';
+  return s;
+}
+function needExp(level){
+  return 120 + (level - 1) * 40;
+}
+function realm() {
+  return REALMS[clamp(S.level - 1, 0, REALMS.length - 1)];
+}
+function fmtPct(x){
+  if (!Number.isFinite(x)) return '0%';
+  return Math.round(x * 100) + '%';
+}
+function todayKey(d){
+  const x = d || new Date();
+  const y = x.getFullYear();
+  const m = String(x.getMonth() + 1).padStart(2, '0');
+  const day = String(x.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + day;
+}
+function currentWeekDays(){
+  const now = new Date();
+  now.setHours(12,0,0,0);
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    days.push({key:todayKey(d), future:d > now});
+  }
+  return days;
+}
+function chineseQuestionNo(n){
+  return ['一','二','三','四','五','六','七','八','九','十'][n-1] || String(n);
+}
+function fmtDuration(sec){
+  sec = Math.max(0, Math.round(sec));
+  if (sec < 60) return sec + ' 秒';
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  if (m < 60) return s ? m + ' 分 ' + s + ' 秒' : m + ' 分';
+  const h = Math.floor(m / 60);
+  const mm = m % 60;
+  return h + ' 时 ' + (mm ? mm + ' 分' : '');
+}
+function weekSeconds(){
+  let total = 0;
+  for (const d of currentWeekDays()) {
+    total += Number(S.stats.daily[d.key] || 0);
+  }
+  return total;
+}
+function byVolStat(n){
+  if (!S.stats.byVol[n]) S.stats.byVol[n] = {a:0, c:0};
+  return S.stats.byVol[n];
+}
+function currentStars(n){
+  return Number(S.best[n] || 0);
+}
+function starsMark(stars){
+  let out = '';
+  for (let i = 1; i <= 3; i++) out += i <= stars ? '★' : '☆';
+  return out;
+}
+function allCleared(){
+  return VOLUMES.every(v => !!S.completed[v.n]);
+}
+function assistTotals(){
+  let incense = 0, crit = 0, qi = 0;
+  for (const id of S.assists) {
+    const c = cardById(id);
+    if (!c) continue;
+    const stars = cardStars(id);
+    if (!stars) continue;
+    const value = c.base * starMult(stars);
+    if (c.assist === 'incense') incense += value;
+    if (c.assist === 'crit') crit += value;
+    if (c.assist === 'qi') qi += value;
+  }
+  return {incense, crit, qi:Math.round(qi)};
+}
+
+/* ——— 三、存档 ——— */
+let S = null;
+let storageOK = true;
+
+function blankState(){
+  return JSON.parse(JSON.stringify(DEFAULT_STATE));
+}
+function loadState(){
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return blankState();
+    const data = JSON.parse(raw);
+    const d = blankState();
+    const merged = Object.assign(d, data || {});
+    merged.stats = Object.assign({answers:0, correct:0, byVol:{}, daily:{}}, (data && data.stats) || {});
+    merged.stats.byVol = Object.assign({}, merged.stats.byVol || {});
+    merged.stats.daily = Object.assign({}, merged.stats.daily || {});
+    merged.best = Object.assign({}, merged.best || {});
+    merged.completed = Object.assign({}, merged.completed || {});
+    merged.cards = Object.assign({}, merged.cards || {});
+    merged.wrong = Array.isArray(merged.wrong) ? merged.wrong.slice(0, 80) : [];
+    merged.assists = Array.isArray(merged.assists) ? merged.assists.filter(id => {
+      const c = cardById(id);
+      return c && merged.cards[id];
+    }).slice(0,3) : [];
+    merged.level = clamp(Number(merged.level) || 1, 1, 9);
+    merged.unlocked = clamp(Number(merged.unlocked) || 1, 1, 10);
+    merged.incense = Math.max(0, Number(merged.incense) || 0);
+    merged.charms = Math.max(0, Number(merged.charms) || 0);
+    merged.starGlow = Math.max(0, Number(merged.starGlow) || 0);
+    return merged;
+  } catch (e) {
+    storageOK = false;
+    return blankState();
+  }
+}
+function save(){
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+    storageOK = true;
+  } catch (e) {
+    storageOK = false;
+  }
+}
+function recordAnswer(vol, correct, seconds){
+  S.stats.answers += 1;
+  if (correct) S.stats.correct += 1;
+  const bv = byVolStat(vol);
+  bv.a += 1;
+  if (correct) bv.c += 1;
+  const key = todayKey();
+  S.stats.daily[key] = Number(S.stats.daily[key] || 0) + Math.max(0, Math.min(QUESTION_SECONDS, seconds));
+  const keys = Object.keys(S.stats.daily).sort();
+  while (keys.length > 30) {
+    delete S.stats.daily[keys.shift()];
+  }
+}
+function addWrong(q, vol, picked){
+  const item = {
+    vol,
+    stem:q.stem,
+    answer:q.options[q.ans],
+    explain:q.explain,
+    time:Date.now(),
+    picked:picked == null ? '' : picked
+  };
+  S.wrong.unshift(item);
+  if (S.wrong.length > 80) S.wrong.length = 80;
+}
+/* ——— 养成：九重境界 ——— */
+function gainExp(amount){
+  let gained = 0;
+  let levels = [];
+  S.exp += amount;
+  while (S.level < 9 && S.exp >= needExp(S.level)) {
+    S.exp -= needExp(S.level);
+    S.level += 1;
+    gained += 1;
+    levels.push(REALMS[S.level - 1]);
+  }
+  if (S.level >= 9) S.exp = Math.min(S.exp, needExp(9));
+  return {gained, levels};
+}
+
+/* ——— 四、出题 ——— */
+let __qid = 0;
+
+function uniqueWrongs(correct, candidates, count){
+  count = count || 3;
+  const out = [];
+  for (const c of candidates) {
+    const t = String(c);
+    if (t !== String(correct) && !out.includes(t)) out.push(t);
+    if (out.length >= count) break;
+  }
+  return out;
+}
+function makeQ(stem, correct, wrongs, explain, sub){
+  const good = String(correct);
+  const seen = new Set([good]);
+  const pool = [good];
+  for (const w of wrongs) {
+    const t = String(w);
+    if (!seen.has(t)) {
+      seen.add(t);
+      pool.push(t);
+    }
+  }
+  const numeric = Number(good);
+  if (Number.isFinite(numeric) && !/[^\d.-]/.test(good)) {
+    const deltas = [1, 10, 100, 1000, -1, -10, -100, -1000];
+    for (const d of deltas) {
+      if (pool.length >= 4) break;
+      const v = numeric + d;
+      if (v < 0) continue;
+      const t = String(v);
+      if (!seen.has(t)) {
+        seen.add(t);
+        pool.push(t);
+      }
+    }
+  }
+  while (pool.length < 4) {
+    const t = pool.length === 1 ? '以上都不对' : '无法确定';
+    if (!seen.has(t)) {
+      seen.add(t);
+      pool.push(t);
+    } else {
+      pool.push('——');
+    }
+  }
+  const options = shuffle(pool.slice(0,4));
+  return {
+    id:++__qid,
+    stem:String(stem),
+    options,
+    ans:options.indexOf(good),
+    explain:String(explain),
+    sub:String(sub || ''),
+    vol:0,
+    topic:''
+  };
+}
+
+/* 卷一 · 万以内加减法 */
+function v1_add(){
+  let a = rand(1200, 4800);
+  let b = rand(800, 3800);
+  if (a + b >= 10000) b = 9999 - a;
+  const c = a + b;
+  return makeQ(`${a} + ${b} = ?`, c,
+    [c - 10, c + 10, c - 100],
+    '先对齐数位，从个位加起。哪一位满十，就向前一位进一。进的 1 是十，不是零头。',
+    '进位加法');
+}
+function v1_sub(){
+  const a = rand(3200, 9800);
+  const b = rand(900, a - 120);
+  const c = a - b;
+  return makeQ(`${a} − ${b} = ?`, c,
+    [c + 10, c - 10, c + 100],
+    '从个位减起。哪一位不够减，就向前一位借一。借来的 1 是十，别当一。',
+    '退位减法');
+}
+function v1_missing(){
+  const a = rand(1200, 4300);
+  const ans = rand(800, 3600);
+  const sum = a + ans;
+  if (sum >= 10000) return v1_missing();
+  return makeQ(`${a} + □ = ${sum}。□ 里填多少？`, ans,
+    [sum + a, ans + 100, ans - 10],
+    '求另一个加数，用和减去已知的加数。别把减法做成加法。',
+    '求未知加数');
+}
+function v1_word(){
+  const a = rand(1200, 3600);
+  const b = rand(300, 799);
+  const c = a + b;
+  return makeQ(`前山石阶 ${a} 级，后山石阶 ${b} 级。两段合起来多少级？`, c,
+    [c - 100, c + 10, c - 10],
+    '两段合起来，用加法。先看个位有没有满十，再看十位。',
+    '加法应用');
+}
+function v1_multi(){
+  const start = rand(3800, 6500);
+  const out = rand(800, 1800);
+  const back = rand(300, 900);
+  const ans = start - out + back;
+  return makeQ(`仓里原有 ${start} 石，先运走 ${out} 石，又运来 ${back} 石。现在有多少石？`, ans,
+    [start + out - back, start - out - back, ans + 100],
+    '按事情发生的顺序算。运走用减，运来用加，走一步看一步。',
+    '连加连减');
+}
+function v1_compare(){
+  const a = rand(1400, 1800);
+  const b = rand(500, 760);
+  const c = rand(2100, 2500);
+  const d = rand(620, 900);
+  const e = rand(1500, 1900);
+  const f = rand(480, 700);
+  const big = rand(3000, 3400);
+  const bigA = rand(1500, 1900);
+  const bigB = big - bigA;
+  const opts = shuffle([
+    `${a} + ${b}`,
+    `${c} − ${d}`,
+    `${e} + ${f}`,
+    `${bigA} + ${bigB}`
+  ]);
+  return makeQ('下面哪个算式的结果比 3000 大？', `${bigA} + ${bigB}`, opts,
+    '先看千位，再看有没有进位。过不过三千，心里先有一道坎。',
+    '估算与比较');
+}
+function v1_zero(){
+  const a = rand(2000, 5000) + rand(1, 9);
+  const b = rand(1200, 2800);
+  const c = a + b;
+  return makeQ(`${a} + ${b} = ?`, c,
+    [c - 100, c + 10, c + 100],
+    '中间有 0，也要占住数位。0 加任何数还是那个数，不能跳过去。',
+    '含 0 的加法');
+}
+
+/* 卷二 · 多位数乘一位数 */
+function v2_three(){
+  const a = rand(123, 987);
+  const b = rand(3, 9);
+  const c = a * b;
+  return makeQ(`${a} × ${b} = ?`, c,
+    [c - 10, c + 10, c - 100],
+    '从个位乘起。哪一位乘得满十，就向前一位进几。进位的数要加在下一乘里。',
+    '三位数乘一位数');
+}
+function v2_two(){
+  const a = rand(23, 98);
+  const b = rand(3, 9);
+  const c = a * b;
+  return makeQ(`${a} × ${b} = ?`, c,
+    [c - 10, c + 10, c + a],
+    '先乘个位，再乘十位。十位上的数乘完，要在后面补一个 0。',
+    '两位数乘一位数');
+}
+function v2_zero(){
+  const a = pick([120, 230, 340, 450, 560, 670, 780, 890, 203, 305, 407, 509, 608, 706, 804, 902]);
+  const b = rand(2, 9);
+  const c = a * b;
+  const noZero = Math.floor(a / 10) * b;
+  return makeQ(`${a} × ${b} = ?`, c,
+    [noZero, c + 100, c - 10],
+    '因数末尾有 0，先算前面的数，再在积的末尾补回 0。0 不是没写，它占一位。',
+    '含 0 的乘法');
+}
+function v2_word(){
+  const a = rand(112, 168);
+  const b = rand(4, 9);
+  const c = a * b;
+  return makeQ(`每辆车装 ${a} 袋粮，${b} 辆车一共装多少袋？`, c,
+    [c - 10, c + 10, c - a],
+    '求几个相同加数的和，用乘法。先算一车，再算几车。',
+    '乘法应用');
+}
+function v2_missing(){
+  const b = rand(3, 9);
+  const ans = rand(112, 198);
+  const c = ans * b;
+  return makeQ(`□ × ${b} = ${c}。□ 里填多少？`, ans,
+    [c - b, c + b, ans - 10],
+    '求一个因数，用积除以另一个因数。乘与除，是一对。',
+    '求未知因数');
+}
+function v2_compare(){
+  const bigA = rand(52, 68);
+  const bigB = rand(7, 9);
+  const a1 = rand(24, 30), b1 = rand(4, 6);
+  const a2 = rand(35, 42), b2 = rand(3, 5);
+  const a3 = rand(14, 20), b3 = rand(5, 7);
+  const others = [`${a1} × ${b1}`, `${a2} × ${b2}`, `${a3} × ${b3}`];
+  return makeQ('下面哪个算式的积最大？', `${bigA} × ${bigB}`, shuffle(others),
+    '先估一估。两个因数都大，积才会大；只看一个因数，容易看走眼。',
+    '积的大小比较');
+}
+function v2_multi(){
+  const a = rand(22, 38);
+  const b = rand(4, 7);
+  const c = rand(21, 58);
+  const ans = a * b - c;
+  return makeQ(`每箱 ${a} 瓶，${b} 箱共有多少瓶？卖掉 ${c} 瓶，还剩多少瓶？`, ans,
+    [a * b, a * b + c, ans - 10],
+    '先求总数，再减卖掉的。两问连着，别把第一问的得数丢了。',
+    '乘法与减法');
+}
+
+/* 卷三 · 除数是一位数的除法 */
+function v3_exact(){
+  const d = rand(3, 9);
+  const q = rand(13, 89);
+  const n = d * q;
+  return makeQ(`${n} ÷ ${d} = ?`, q,
+    [q + 10, q - 10, q + 1],
+    '从高位除起。除到哪一位，商就写在哪一位上面。每一位都要有着落。',
+    '笔算除法');
+}
+function v3_remainder(){
+  const d = rand(4, 9);
+  const q = rand(12, 46);
+  const r = rand(1, d - 1);
+  const n = d * q + r;
+  const correct = `商${q}余${r}`;
+  return makeQ(`${n} ÷ ${d} 的商和余数是多少？`, correct,
+    [`商${q + 1}余${r}`, `商${q}余${d}`, `商${r}余${q}`],
+    '余数必须比除数小。除到最后不够除，剩下的才是余数，不能把它塞进商里。',
+    '有余数的除法');
+}
+function v3_roundup(){
+  const per = rand(4, 9);
+  const q = rand(10, 14);
+  const total = per * q - rand(1, per - 1);
+  return makeQ(`${total} 人过河，每条船坐 ${per} 人。至少需要几条船？`, q,
+    [q + 1, q - 1, q - 2],
+    '除到最后有余数，余下的人也要上船。不管余几，都进一。',
+    '进一法');
+}
+function v3_missing(){
+  const d = rand(4, 9);
+  const q = rand(12, 48);
+  const r = rand(1, d - 1);
+  const n = d * q + r;
+  return makeQ(`一个数除以 ${d}，商 ${q}，余 ${r}。这个数是多少？`, n,
+    [d * q, d * q + r + d, d * q - r],
+    '被除数 = 除数 × 商 + 余数。算完别忘了把余数加回去。',
+    '求被除数');
+}
+function v3_word(){
+  const per = rand(4, 9);
+  const q = rand(12, 36);
+  const total = per * q;
+  return makeQ(`${total} 个桃子，每盘装 ${per} 个。能装几盘？`, q,
+    [q + 1, q - 1, q + 10],
+    '求能装几盘，就是看总数里有几个每盘的数。用除法，商就是盘数。',
+    '除法应用');
+}
+function v3_compare(){
+  const cases = [
+    [108, 9], [99, 9], [72, 8], [64, 8]
+  ];
+  const qs = cases.map(x => x[0] / x[1]);
+  let idx = qs.indexOf(Math.max(...qs));
+  const correct = `${cases[idx][0]} ÷ ${cases[idx][1]}`;
+  const opts = cases.map(x => `${x[0]} ÷ ${x[1]}`);
+  return makeQ('下面哪个算式的商最大？', correct, opts.filter(x => x !== correct),
+    '先看被除数里大约有几个除数。除数不同，不能只看被除数的大小。',
+    '商的大小比较');
+}
+function v3_zeroq(){
+  const d = rand(3, 9);
+  const q = 100 + rand(1, 9);
+  const n = d * q;
+  return makeQ(`${n} ÷ ${d} = ?`, q,
+    [q - 90, q + 27, q + 900],
+    '商中间不够商 1，要写 0 占位。那个 0 不是空的，它守住十位。',
+    '商中间有 0');
+}
+
+/* 卷四 · 倍的认识 */
+function v4_multiple(){
+  const base = rand(5, 13);
+  const m = rand(2, 6);
+  const ans = base * m;
+  return makeQ(`红花 ${base} 朵，黄花是红花的 ${m} 倍。黄花有多少朵？`, ans,
+    [base + m, ans + base, ans - base],
+    '求一个数的几倍，用乘法。几倍，就是有几个这样的一份。',
+    '求几倍');
+}
+function v4_inverse(){
+  const base = rand(4, 12);
+  const m = rand(2, 6);
+  const total = base * m;
+  return makeQ(`黄花有 ${total} 朵，是红花的 ${m} 倍。红花有多少朵？`, base,
+    [total * m, total - m, total + m],
+    '已知几倍后的数和倍数，求原来的一份，用除法。',
+    '求一份');
+}
+function v4_ratio(){
+  const b = rand(3, 9);
+  const k = rand(3, 9);
+  const a = b * k;
+  return makeQ(`${a} 是 ${b} 的几倍？`, k,
+    [a - b, a + b, k + 1],
+    '求一个数是另一个数的几倍，用这个数除以另一个数。倍不是差。',
+    '求倍数');
+}
+function v4_multi(){
+  const base = rand(8, 15);
+  const m = rand(3, 6);
+  const less = rand(3, 10);
+  const ans = base * m - less;
+  return makeQ(`一本册子有 ${base} 页，另一本的页数是它的 ${m} 倍少 ${less} 页。另一本有多少页？`, ans,
+    [base * m + less, base * m, base * (m - 1)],
+    '先求整倍数，再减去少的那几页。两句话，两步走。',
+    '几倍多几');
+}
+function v4_more(){
+  const base = rand(6, 12);
+  const m = rand(3, 6);
+  const ans = base * m - base;
+  return makeQ(`${base} 的 ${m} 倍，比 ${base} 多多少？`, ans,
+    [base * m, base * m + base, base + m],
+    '先求几倍是多少，再减去原来的数。多出来的，是那几份。',
+    '倍数与差');
+}
+function v4_total(){
+  const b = rand(6, 12);
+  const m = rand(2, 5);
+  const ans = b + b * m;
+  return makeQ(`树上原有 ${b} 只鸟，又飞来的鸟是原来的 ${m} 倍。现在一共有多少只？`, ans,
+    [b * m, b * m - b, b * (m + 2)],
+    '飞来的是原来的几倍，还要加上原来的那一份。别只算飞来的。',
+    '倍数与总和');
+}
+function v4_diff(){
+  const x = rand(5, 12);
+  const m = rand(3, 5);
+  const ans = x * m - x;
+  return makeQ(`甲绳长 ${x} 米，乙绳是甲的 ${m} 倍。两绳相差多少米？`, ans,
+    [x * m, x * (m + 1), x],
+    '乙是几倍，就先求乙。相差的是乙减甲，不是乙加甲。',
+    '倍数相差');
+}
+
+/* 卷五 · 时、分、秒，年、月、日 */
+function pad2(n){ return String(n).padStart(2, '0'); }
+function fmtHM(h, m){ return pad2(h) + ':' + pad2(m); }
+function v5_elapsed(){
+  const h = rand(7, 10);
+  const m = rand(33, 52);
+  const extra = rand(4, 20);
+  const dur = 60 - m + extra;
+  const endM = extra;
+  const opts = [
+    `${dur} 分`,
+    `${dur + 10} 分`,
+    `${Math.max(1, dur - 10)} 分`,
+    `1 时 ${dur} 分`
+  ];
+  return makeQ(`从 ${h}:${pad2(m)} 到 ${h + 1}:${pad2(endM)}，经过了多少分？`, `${dur} 分`, opts.filter(x => x !== `${dur} 分`),
+    '先补到整点，再加余下的分钟。跨过整点，不能直接拿分钟相减。',
+    '经过时间');
+}
+function v5_end(){
+  const h = rand(6, 11);
+  const m = rand(10, 49);
+  const dur = rand(35, 70);
+  const total = h * 60 + m + dur;
+  const eh = Math.floor(total / 60) % 24;
+  const em = total % 60;
+  const correct = fmtHM(eh, em);
+  const wrongs = uniqueWrongs(correct, [
+    fmtHM(h, (m + dur) % 60),
+    fmtHM((eh + 1) % 24, em),
+    fmtHM(eh, (em + 10) % 60),
+    fmtHM(eh, (em + 50) % 60)
+  ]);
+  return makeQ(`${h}:${pad2(m)} 再过 ${dur} 分，是几时几分？`, correct,
+    wrongs,
+    '分针走满六十，时针进一格。加上时间后，先处理满六十的那一部分。',
+    '结束时刻');
+}
+function v5_start(){
+  let h = rand(8, 12);
+  let m = rand(15, 40);
+  const dur = rand(25, 55);
+  let total = h * 60 + m - dur;
+  if (total < 0) total += 24 * 60;
+  const sh = Math.floor(total / 60);
+  const sm = total % 60;
+  const correct = fmtHM(sh, sm);
+  const wrongs = uniqueWrongs(correct, [
+    fmtHM((h + Math.floor((m + dur) / 60)) % 24, (m + dur) % 60),
+    fmtHM((sh + 1) % 24, sm),
+    fmtHM(sh, (sm + 10) % 60),
+    fmtHM((sh + 2) % 24, sm),
+    fmtHM(sh, (sm + 50) % 60)
+  ]);
+  return makeQ(`一场斗法在 ${h}:${pad2(m)} 结束，用了 ${dur} 分。几时开始？`, correct,
+    wrongs,
+    '结束时刻减去经过时间，就是开始时刻。不够减，就向前一小时借六十。',
+    '开始时刻');
+}
+function v5_convert(){
+  if (Math.random() < 0.5) {
+    const h = rand(2, 4);
+    const m = rand(5, 55);
+    const ans = h * 60 + m;
+    return makeQ(`${h} 时 ${m} 分 = 多少分？`, ans,
+      [h * 100 + m, ans - 60, h * 60 - m],
+      '一时是六十分。先把时化成分，再加剩下的分。不要按一百去算。',
+      '时间的换算');
+  }
+  const m = rand(2, 5);
+  const s = rand(10, 50);
+  const ans = m * 60 + s;
+  return makeQ(`${m} 分 ${s} 秒 = 多少秒？`, ans,
+    [m * 100 + s, ans - 60, m * 60 - s],
+    '一分是六十秒。先算整分，再加上零头秒。',
+    '分与秒');
+}
+function v5_feb(){
+  const isLeap = Math.random() < 0.5;
+  const year = isLeap ? pick([2024, 2028, 2032]) : pick([2023, 2025, 2026]);
+  const correct = isLeap ? 29 : 28;
+  return makeQ(`${year} 年 2 月有多少天？`, correct,
+    [correct === 29 ? 28 : 29, 30, 31],
+    '闰年 2 月 29 天，平年 2 月 28 天。年份是 4 的倍数，一般是闰年。',
+    '年、月、日');
+}
+function v5_weekday(){
+  const names = ['星期一','星期二','星期三','星期四','星期五','星期六','星期日'];
+  const start = rand(0, 6);
+  let offset = rand(8, 20);
+  if (offset % 7 === 0) offset += 1;
+  const ans = names[(start + offset) % 7];
+  const wrong = names.filter(x => x !== ans).slice(0, 3);
+  return makeQ(`3 月 1 日是${names[start]}，3 月 ${offset + 1} 日是星期几？`, ans,
+    wrong,
+    '一星期七天。先看相差几天，再把七天整周去掉，剩下的往后数。',
+    '星期推算');
+}
+function v5_clock24(){
+  const h = rand(1, 5);
+  const m = rand(0, 11) * 5;
+  const ans = pad2(h + 12) + ':' + pad2(m);
+  const wrong1 = pad2(h) + ':' + pad2(m);
+  const wrong2 = pad2(h + 13) + ':' + pad2(m);
+  const wrong3 = pad2(h + 12) + ':' + pad2((m + 5) % 60);
+  return makeQ(`下午 ${h} 时 ${m} 分，用 24 时计时法怎么写？`, ans,
+    [wrong1, wrong2, wrong3],
+    '下午的时数加十二。下午一时，就是十三时。分钟不变。',
+    '24 时计时法');
+}
+
+/* 卷六 · 长度与质量单位换算 */
+function v6_km(){
+  const k = rand(1, 5);
+  const m = rand(100, 900);
+  const ans = k * 1000 + m;
+  return makeQ(`${k} 千米 ${m} 米 = 多少米？`, ans,
+    [k * 1000, k * 100 + m, k * 10000 + m],
+    '一千米是一千米。先把千米化成米，再把剩下的米加上。',
+    '千米与米');
+}
+function v6_m(){
+  const m = rand(1, 5);
+  const cm = rand(10, 99);
+  const ans = m * 100 + cm;
+  return makeQ(`${m} 米 ${cm} 厘米 = 多少厘米？`, ans,
+    [m * 10 + cm, m * 1000 + cm, m * 100 - cm],
+    '一米是一百厘米。米化厘米，乘一百；再把厘米数加上。',
+    '米与厘米');
+}
+function v6_kg(){
+  const kg = rand(2, 8);
+  const g = rand(50, 900);
+  const ans = kg * 1000 + g;
+  return makeQ(`${kg} 千克 ${g} 克 = 多少克？`, ans,
+    [kg * 100 + g, kg * 10000 + g, kg * 1000],
+    '一千克是一千克。千克化克，乘一千；零头克不能丢。',
+    '千克与克');
+}
+function v6_t(){
+  const t = rand(2, 8);
+  const ans = t * 1000;
+  return makeQ(`${t} 吨 = 多少千克？`, ans,
+    [t * 100, t * 10000, t + 1000],
+    '一吨是一千千克。吨化千克，乘一千。进率错一位，差的就是十倍。',
+    '吨与千克');
+}
+function v6_compare(){
+  const opts = ['3 千克','2900 克','3 吨','300 克'];
+  return makeQ('下面哪个最重？', '3 吨', shuffle(opts.filter(x => x !== '3 吨')),
+    '先化成同一单位再比。吨最大，千克次之，克最小。',
+    '质量比较');
+}
+function v6_bridge(){
+  const limit = rand(6, 10);
+  const usedT = rand(2, limit - 2);
+  const usedKg = rand(100, 900);
+  const ans = limit * 1000 - (usedT * 1000 + usedKg);
+  return makeQ(`一座桥限重 ${limit} 吨。一辆车重 ${usedT} 吨 ${usedKg} 千克，还能再装多少千克？`, ans,
+    [ans + 1000, ans - 100, usedKg],
+    '先统一成千克。限重减去车重，剩下的才是能装的。别把吨和千克直接相减。',
+    '载重问题');
+}
+function v6_length(){
+  const m = rand(1, 4);
+  const cm = rand(20, 80);
+  const add = rand(20, 70);
+  const ans = m * 100 + cm + add;
+  return makeQ(`一根绳长 ${m} 米 ${cm} 厘米，再接上 ${add} 厘米。现在长多少厘米？`, ans,
+    [m * 100 + cm, cm + add, m * 1000 + cm + add],
+    '都化成厘米再相加。米化厘米乘一百，接上的那一段直接加。',
+    '长度相加');
+}
+
+/* 卷七 · 周长 */
+function v7_rect(){
+  const l = rand(7, 15);
+  const w = rand(3, 6);
+  const ans = 2 * (l + w);
+  return makeQ(`长方形长 ${l} 厘米，宽 ${w} 厘米。周长是多少厘米？`, ans,
+    [l * w, l + w, l * 2 + w],
+    '周长是围一圈的长度。长加宽，再乘二。别把面积公式拿来用。',
+    '长方形周长');
+}
+function v7_square(){
+  const s = rand(6, 12);
+  const ans = 4 * s;
+  return makeQ(`正方形边长 ${s} 厘米。周长是多少厘米？`, ans,
+    [s * s, s * 2, s + 4],
+    '正方形四条边一样长。边长乘四，就是一圈。',
+    '正方形周长');
+}
+function v7_side(){
+  const l = rand(5, 14);
+  const w = rand(2, l - 1);
+  const p = 2 * (l + w);
+  return makeQ(`长方形周长 ${p} 厘米，长 ${l} 厘米。宽是多少厘米？`, w,
+    [p - l, p / 2, l + 2],
+    '周长除以二，得到长加宽。再减去长，剩下的就是宽。',
+    '求边长');
+}
+function v7_fence(){
+  const l = rand(8, 15);
+  const w = rand(4, 7);
+  const ans = l + 2 * w;
+  return makeQ(`菜园长 ${l} 米，宽 ${w} 米。长边靠墙，三面围篱笆。篱笆至少多少米？`, ans,
+    [2 * (l + w), 2 * l + w, l + w],
+    '靠墙的那一条边不用围。只围两条宽和一条长。',
+    '围篱笆');
+}
+function v7_cut(){
+  const l = 10, w = 6, a = 3, b = 2;
+  const ans = 2 * (l + w);
+  return makeQ(`长方形长 ${l} 厘米、宽 ${w} 厘米。从一角剪掉一个长 ${a} 厘米、宽 ${b} 厘米的小长方形。剩下图形的周长是多少厘米？`, ans,
+    [2 * (l + w) - 2 * (a + b), l * w - a * b, 2 * (l + w) + 2 * (a + b)],
+    '从角上剪掉一块，凹进去的边和原来一样长。周长不变，别把剪掉的边减掉。',
+    '剪角周长');
+}
+function v7_rope(){
+  const s = rand(6, 12);
+  const ans = 4 * s;
+  return makeQ(`一根绳正好围成一个边长 ${s} 厘米的正方形。绳长多少厘米？`, ans,
+    [s * s, s * 2, s + 4],
+    '绳长就是正方形的周长。四条边合起来，边长乘四。',
+    '绳与周长');
+}
+function v7_which(){
+  const opts = [
+    '边长 6 厘米的正方形',
+    '长 9 厘米、宽 4 厘米的长方形',
+    '长 8 厘米、宽 3 厘米的长方形',
+    '长 10 厘米、宽 5 厘米的长方形'
+  ];
+  return makeQ('下面哪个图形的周长是 24 厘米？', '边长 6 厘米的正方形', shuffle(opts.slice(1)),
+    '正方形周长是边长乘四；长方形是长加宽再乘二。两个都算一遍，再比。',
+    '周长辨认');
+}
+
+/* 卷八 · 面积 */
+function v8_rect(){
+  const l = rand(7, 15);
+  const w = rand(4, 8);
+  const ans = l * w;
+  return makeQ(`长方形长 ${l} 米，宽 ${w} 米。面积是多少平方米？`, ans,
+    [2 * (l + w), l + w, l * w * 2],
+    '面积是铺满的大小，用长乘宽。单位是平方米，不是米。',
+    '长方形面积');
+}
+function v8_square(){
+  const s = rand(6, 12);
+  const ans = s * s;
+  return makeQ(`正方形边长 ${s} 分米。面积是多少平方分米？`, ans,
+    [4 * s, 2 * s, s + 4],
+    '正方形面积是边长乘边长。别把周长公式拿来用。',
+    '正方形面积');
+}
+function v8_side(){
+  const l = rand(6, 12);
+  const w = rand(3, 7);
+  const area = l * w;
+  return makeQ(`长方形面积 ${area} 平方米，长 ${l} 米。宽是多少米？`, w,
+    [area - l, area + l, l + 2],
+    '面积除以长，得到宽。面积和周长不是一回事。',
+    '求宽的边');
+}
+function v8_comp(){
+  const l = 10, w = 6, a = 3, b = 2;
+  const ans = l * w - a * b;
+  return makeQ(`大长方形长 ${l} 米、宽 ${w} 米。一角缺了一个长 ${a} 米、宽 ${b} 米的小长方形。剩下的面积是多少平方米？`, ans,
+    [l * w, 2 * (l + w), ans + 2],
+    '先算整块，再减缺掉的那一块。面积能直接相减。',
+    '组合图形面积');
+}
+function v8_floor(){
+  const l = rand(7, 12);
+  const w = rand(4, 7);
+  const ans = l * w;
+  return makeQ(`一间屋长 ${l} 米，宽 ${w} 米。地面面积是多少平方米？`, ans,
+    [2 * (l + w), l + w, ans * 2],
+    '铺地面看的是面积。长乘宽，得到平方米。',
+    '面积应用');
+}
+function v8_compare(){
+  const opts = [
+    '边长 6 分米的正方形',
+    '长 8 分米、宽 4 分米的长方形',
+    '长 7 分米、宽 4 分米的长方形',
+    '长 10 分米、宽 3 分米的长方形'
+  ];
+  return makeQ('下面哪个图形的面积最大？', '边长 6 分米的正方形', shuffle(opts.slice(1)),
+    '分别算面积再比。边长六的正方形是三十六平方分米，别和周长混了。',
+    '面积比较');
+}
+function v8_unit(){
+  return makeQ('教室地面的面积大约是 50（ ）。', '平方米',
+    ['米','平方厘米','分米'],
+    '量地面的大小，用面积单位。米是长度，平方米才是面积。',
+    '面积单位');
+}
+
+/* 卷九 · 分数初步 */
+function v9_add(){
+  const d = rand(5, 10);
+  const a = rand(1, d - 3);
+  const b = rand(1, d - a - 1);
+  const correct = `${a + b}/${d}`;
+  return makeQ(`${a}/${d} + ${b}/${d} = ?`, correct,
+    [`${a + b}/${d * 2}`, `${a + b + 1}/${d}`, `${Math.max(1, a + b - 1)}/${d}`],
+    '分母相同，分母不动，分子相加。分母是分的份数，不能跟着加。',
+    '同分母加法');
+}
+function v9_sub(){
+  const d = rand(5, 10);
+  const a = rand(2, d - 1);
+  const b = rand(1, a - 1);
+  const correct = `${a - b}/${d}`;
+  return makeQ(`${a}/${d} − ${b}/${d} = ?`, correct,
+    [`${a + b}/${d}`, `${a - b}/${Math.max(2, d - 1)}`, `${a - b + 1}/${d}`],
+    '分母相同，分母不动，分子相减。减的是取的份数，不是分的份数。',
+    '同分母减法');
+}
+function v9_compare(){
+  const d = rand(5, 10);
+  const nums = shuffle([1, 2, 3, 4, 5, 6, 7, 8]).filter(n => n < d).slice(0, 4);
+  if (nums.length < 4) return v9_compare();
+  const max = Math.max(...nums);
+  const correct = `${max}/${d}`;
+  return makeQ('下面哪个分数最大？', correct,
+    nums.filter(n => n !== max).map(n => `${n}/${d}`),
+    '分母相同，分子大的分数大。分的份数一样，取得多的那一份多。',
+    '分数比较');
+}
+function v9_one(){
+  const d = pick([5, 7, 9]);
+  const a = rand(1, d - 1);
+  const correct = `${d - a}/${d}`;
+  return makeQ(`1 − ${a}/${d} = ?`, correct,
+    uniqueWrongs(correct, [
+      `${a}/${d}`,
+      `${d - a + 2}/${d}`,
+      `${d + a}/${d}`,
+      `${d - a + 3}/${d}`,
+      `${d + a + 1}/${d}`
+    ]),
+    '把 1 看成整块。一整块减去取走的份数，剩下的份数作分子，分母不变。',
+    '1 减分数');
+}
+function v9_set(){
+  const d = rand(2, 5);
+  const each = rand(2, 6);
+  const total = d * each;
+  return makeQ(`${total} 块饼平均分成 ${d} 份，一份有多少块？`, each,
+    [total + d, total * d, each + d],
+    '平均分成几份，就用总数除以几。分数的一份，也是这个数。',
+    '分数与除法');
+}
+function v9_shaded(){
+  const d = rand(5, 8);
+  let shade = rand(1, d - 1);
+  if (shade * 2 === d) shade = shade === 1 ? 2 : shade - 1;
+  const correct = `${shade}/${d}`;
+  return makeQ(`一个圆平均分成 ${d} 份，涂了 ${shade} 份。涂色部分占几分之几？`, correct,
+    [`${d - shade}/${d}`, `${shade}/${d - shade}`, `${d}/${shade}`],
+    '分母是平均分的总份数，分子是涂色的份数。按顺序写，别倒过来。',
+    '认识分数');
+}
+function v9_fill(){
+  const d = pick([5, 7, 9]);
+  const a = rand(1, d - 2);
+  const correct = `${d - a}/${d}`;
+  return makeQ(`${a}/${d} + □ = 1。□ 里填多少？`, correct,
+    uniqueWrongs(correct, [
+      `${a}/${d}`,
+      `${d - a + 2}/${d}`,
+      `${d + a}/${d}`,
+      `${d - a + 3}/${d}`,
+      `${d + a + 1}/${d}`
+    ]),
+    '凑成一整块。分子还差几份，就填几份，分母不变。',
+    '凑整');
+}
+function v9_unit(){
+  const d1 = rand(3, 6);
+  const d2 = rand(d1 + 1, 9);
+  return makeQ(`1/${d1} 和 1/${d2}，哪个大？`, `1/${d1}`,
+    [`1/${d2}`, '一样大', '无法比较'],
+    '同样一块，分的份数越少，每份越大。分母大，每份反而小。',
+    '几分之一比较');
+}
+
+/* 卷十 · 综合 */
+function v10_two(){
+  const a = rand(13, 48);
+  const b = rand(12, 39);
+  const c = a * b;
+  return makeQ(`${a} × ${b} = ?`, c,
+    [c - 10, c + 10, c - a],
+    '把第二个因数拆成整十和个位，分别乘，再相加。十位乘完要错位。',
+    '两位数乘两位数');
+}
+function fmtTenths(n){
+  return (n / 10).toFixed(1);
+}
+function v10_decadd(){
+  const a = rand(15, 59);
+  const b = rand(11, 39);
+  if (a + b >= 100) return v10_decadd();
+  const correct = fmtTenths(a + b);
+  return makeQ(`${fmtTenths(a)} + ${fmtTenths(b)} = ?`, correct,
+    [fmtTenths(a + b - 10), fmtTenths((a + b) * 10), fmtTenths(a + b + 10)],
+    '小数点对齐，十分位相加。满十就向个位进一，别把小数点丢了。',
+    '小数加法');
+}
+function v10_decsub(){
+  const a = rand(40, 89);
+  const b = rand(11, a - 10);
+  const correct = fmtTenths(a - b);
+  return makeQ(`${fmtTenths(a)} − ${fmtTenths(b)} = ?`, correct,
+    [fmtTenths(a + b), fmtTenths(a - b + 10), fmtTenths(a - b - 10)],
+    '小数点对齐，十分位相减。不够减，向个位借一，借来的是十。',
+    '小数减法');
+}
+function v10_comb(){
+  const tops = rand(2, 4);
+  const pants = rand(3, 5);
+  const ans = tops * pants;
+  return makeQ(`${tops} 件上衣，${pants} 条裤子。一件上衣配一条裤子，一共有多少种搭配？`, ans,
+    [tops + pants, ans + 2, ans - tops],
+    '每件上衣都能配所有裤子。一种上衣配几条，就有几套；再乘上衣数。',
+    '搭配');
+}
+function v10_zero(){
+  const a = rand(2, 9) * 10;
+  const b = rand(12, 29);
+  const c = a * b;
+  return makeQ(`${a} × ${b} = ?`, c,
+    [(a / 10) * b, c + 10, c - 100],
+    '先不看末尾的 0，算完再补回去。补错一位，就差十倍。',
+    '末尾有 0 的乘法');
+}
+function v10_mixed(){
+  const a = rand(12, 25);
+  const b = rand(3, 8);
+  const c = rand(100, 300);
+  const ans = a * b + c;
+  return makeQ(`${a} × ${b} + ${c} = ?`, ans,
+    [a * (b + c), a * b, a * b - c],
+    '先乘后加。乘号先落笔，加号后算账。',
+    '混合运算');
+}
+function v10_money(){
+  const y1 = rand(2, 8), j1 = rand(1, 9);
+  const y2 = rand(1, 7), j2 = rand(1, 9);
+  const total = (y1 * 10 + j1) + (y2 * 10 + j2);
+  const y = Math.floor(total / 10), j = total % 10;
+  const correct = j ? `${y} 元 ${j} 角` : `${y} 元`;
+  const wrong1 = j ? `${y} 元 ${j + 1} 角` : `${y} 元 1 角`;
+  const wrong2 = `${Math.max(1, y - 1)} 元 ${j} 角`;
+  const wrong3 = `${y + 1} 元 ${j} 角`;
+  return makeQ(`${y1} 元 ${j1} 角 + ${y2} 元 ${j2} 角 = ?`, correct,
+    [wrong1, wrong2, wrong3],
+    '角相加满十，就向元进一。元加元，角加角，进上来的别忘。',
+    '元角计算');
+}
+
+const VOL_GENS = {
+  1:[v1_add, v1_sub, v1_missing, v1_word, v1_multi, v1_compare, v1_zero],
+  2:[v2_three, v2_two, v2_zero, v2_word, v2_missing, v2_compare, v2_multi],
+  3:[v3_exact, v3_remainder, v3_roundup, v3_missing, v3_word, v3_compare, v3_zeroq],
+  4:[v4_multiple, v4_inverse, v4_ratio, v4_multi, v4_more, v4_total, v4_diff],
+  5:[v5_elapsed, v5_end, v5_start, v5_convert, v5_feb, v5_weekday, v5_clock24],
+  6:[v6_km, v6_m, v6_kg, v6_t, v6_compare, v6_bridge, v6_length],
+  7:[v7_rect, v7_square, v7_side, v7_fence, v7_cut, v7_rope, v7_which],
+  8:[v8_rect, v8_square, v8_side, v8_comp, v8_floor, v8_compare, v8_unit],
+  9:[v9_add, v9_sub, v9_compare, v9_one, v9_set, v9_shaded, v9_fill, v9_unit],
+  10:[v10_two, v10_decadd, v10_decsub, v10_comb, v10_zero, v10_mixed, v10_money]
+};
+
+function buildQuestions(vol, count){
+  const gens = shuffle(VOL_GENS[vol] || []).slice(0, count);
+  const out = [];
+  const stems = new Set();
+  for (let i = 0; i < gens.length; i++) {
+    let q = null;
+    for (let t = 0; t < 14; t++) {
+      const made = gens[i]();
+      if (!stems.has(made.stem) && made.ans >= 0) {
+        q = made;
+        break;
+      }
+    }
+    if (!q) q = gens[i]();
+    stems.add(q.stem);
+    q.vol = vol;
+    q.topic = VOLUMES[vol - 1].topic;
+    out.push(q);
+  }
+  return out;
+}
+
+/* ——— 五、声与影 ——— */
+let AC = null;
+let toastTimer = null;
+
+function initAudio(){
+  if (AC) {
+    if (AC.state === 'suspended') AC.resume().catch(() => {});
+    return;
+  }
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) return;
+  try { AC = new Ctx(); } catch (e) { AC = null; }
+}
+function tone(freq, dur, type, volume, delay){
+  if (!S || !S.audio) return;
+  initAudio();
+  if (!AC) return;
+  const t0 = AC.currentTime + (delay || 0);
+  const osc = AC.createOscillator();
+  const gain = AC.createGain();
+  osc.type = type || 'sine';
+  osc.frequency.setValueAtTime(freq, t0);
+  gain.gain.setValueAtTime(0.0001, t0);
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, volume || 0.04), t0 + 0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t0 + Math.max(0.05, dur || 0.16));
+  osc.connect(gain).connect(AC.destination);
+  osc.start(t0);
+  osc.stop(t0 + Math.max(0.06, dur || 0.16) + 0.03);
+}
+function sfx(kind){
+  if (!S || !S.audio) return;
+  if (kind === 'good') {
+    tone(523.25, .13, 'sine', .035, 0);
+    tone(783.99, .18, 'sine', .03, .09);
+  } else if (kind === 'crit') {
+    tone(659.25, .1, 'triangle', .04, 0);
+    tone(987.77, .16, 'triangle', .035, .08);
+    tone(1318.5, .18, 'sine', .025, .16);
+  } else if (kind === 'bad') {
+    tone(146.83, .18, 'sine', .045, 0);
+    tone(110, .22, 'sine', .035, .1);
+  } else if (kind === 'stamp') {
+    tone(92.5, .15, 'sine', .05, 0);
+    tone(196, .12, 'triangle', .025, .04);
+  } else if (kind === 'tap') {
+    tone(392, .055, 'sine', .018, 0);
+  }
+}
+function toast(msg, warn){
+  const el = $('#toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'toast show' + (warn ? ' warn' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = 'toast'; }, 2200);
+}
+function toggleAudio(){
+  S.audio = !S.audio;
+  if (S.audio) {
+    initAudio();
+    sfx('tap');
+  }
+  save();
+  renderCurrent();
+  toast(S.audio ? '音已开。轻。' : '音已关。');
+}
+
+/* ——— 六、战斗 ——— */
+let B = null;
+
+function startBattle(vol){
+  const v = VOLUMES[vol - 1];
+  if (!v) return;
+  const totals = assistTotals();
+  const qs = buildQuestions(vol, 7);
+  B = {
+    token: Date.now() + Math.random(),
+    vol,
+    qs,
+    idx: 0,
+    enemyQi: v.qi,
+    enemyQiMax: v.qi,
+    playerQi: MAX_QI + totals.qi,
+    playerQiMax: MAX_QI + totals.qi,
+    crit: 0.05 + totals.crit / 100,
+    incenseBoost: totals.incense / 100,
+    combo: 0,
+    maxCombo: 0,
+    correct: 0,
+    mistakes: [],
+    earned: 0,
+    picked: null,
+    locked: false,
+    feedback: null,
+    timeLeft: QUESTION_SECONDS,
+    questionStart: 0,
+    timer: null,
+    finished: false,
+    result: null
+  };
+  U.view = 'battle';
+  setView(renderBattle());
+  beginTimer();
+}
+function enemyAlive(){
+  return B && B.enemyQi > 0;
+}
+function beginTimer(keep){
+  if (!B) return;
+  clearInterval(B.timer);
+  if (!keep) B.timeLeft = QUESTION_SECONDS;
+  B.questionStart = performance.now() - (QUESTION_SECONDS - B.timeLeft) * 1000;
+  B.locked = false;
+  updateTimerUI();
+  B.timer = setInterval(() => {
+    if (!B || B.locked) return;
+    const spent = (performance.now() - B.questionStart) / 1000;
+    B.timeLeft = Math.max(0, QUESTION_SECONDS - spent);
+    updateTimerUI();
+    if (B.timeLeft <= 0.05) {
+      clearInterval(B.timer);
+      B.timer = null;
+      answerQuestion(-1, true);
+    }
+  }, 80);
+}
+function pauseBattleClock(){
+  if (U.view !== 'battle' || !B || B.locked || B.finished || !B.timer) return;
+  const spent = (performance.now() - B.questionStart) / 1000;
+  B.timeLeft = Math.max(0, QUESTION_SECONDS - spent);
+  clearInterval(B.timer);
+  B.timer = null;
+  updateTimerUI();
+}
+function resumeBattleClock(){
+  if (U.view !== 'battle' || !B || B.locked || B.finished || B.timer) return;
+  if (B.timeLeft <= 0.05) return;
+  beginTimer(true);
+}
+function updateTimerUI(){
+  if (!B) return;
+  const fill = $('#timerFill');
+  const num = $('#timerNum');
+  if (fill) {
+    const pct = clamp(B.timeLeft / QUESTION_SECONDS, 0, 1);
+    fill.style.width = (pct * 100).toFixed(2) + '%';
+    fill.classList.toggle('low', B.timeLeft <= 15);
+  }
+  if (num) num.textContent = Math.max(0, Math.ceil(B.timeLeft)) + ' 息';
+}
+function answerQuestion(opt, timeout){
+  if (!B || B.locked || B.finished) return;
+  B.locked = true;
+  clearInterval(B.timer);
+  B.timer = null;
+  const q = B.qs[B.idx];
+  const spent = timeout ? QUESTION_SECONDS : clamp((performance.now() - B.questionStart) / 1000, 0, QUESTION_SECONDS);
+  B.timeLeft = Math.max(0, QUESTION_SECONDS - spent);
+  updateTimerUI();
+  B.picked = opt;
+  if (opt === q.ans) {
+    B.combo += 1;
+    B.maxCombo = Math.max(B.maxCombo, B.combo);
+    B.correct += 1;
+    const crit = Math.random() < B.crit;
+    const dmg = crit ? 2 : 1;
+    B.enemyQi = Math.max(0, B.enemyQi - dmg);
+    const hit = Math.round((8 + B.vol) * (1 + Math.min(B.combo, 10) * 0.1));
+    B.earned += hit;
+    recordAnswer(B.vol, true, spent);
+    const line = crit ? '会心。两击。' : (B.combo >= 3 ? '有点意思了。' : pick(RIGHT_LINES));
+    B.feedback = {
+      type:'good',
+      line,
+      crit,
+      dmg,
+      hit,
+      enemyDown:B.enemyQi <= 0,
+      explain:''
+    };
+    sfx(crit ? 'crit' : 'good');
+    save();
+    setView(renderBattle());
+    const token = B.token;
+    setTimeout(() => {
+      if (!B || B.token !== token || B.finished) return;
+      if (B.idx >= B.qs.length - 1) {
+        setTimeout(() => { if (B && B.token === token) finishBattle(); }, 430);
+      } else {
+        nextQuestion();
+      }
+    }, 620);
+  } else {
+    const wasCombo = B.combo;
+    B.combo = 0;
+    const counter = enemyAlive();
+    if (counter) B.playerQi = Math.max(0, B.playerQi - 1);
+    recordAnswer(B.vol, false, spent);
+    addWrong(q, B.vol, opt >= 0 ? q.options[opt] : '未答');
+    B.mistakes.push({
+      stem:q.stem,
+      answer:q.options[q.ans],
+      explain:q.explain,
+      picked:opt >= 0 ? q.options[opt] : '未答',
+      timeout:!!timeout
+    });
+    const defeated = B.playerQi <= 0;
+    B.feedback = {
+      type:'bad',
+      line: timeout ? '慢了一步。' : pick(WRONG_LINES),
+      explain:q.explain,
+      counter,
+      wasCombo,
+      defeated
+    };
+    sfx('bad');
+    save();
+    setView(renderBattle());
+  }
+}
+function nextQuestion(){
+  if (!B || B.finished) return;
+  if (B.idx >= B.qs.length - 1) {
+    finishBattle();
+    return;
+  }
+  B.idx += 1;
+  B.picked = null;
+  B.feedback = null;
+  B.locked = false;
+  B.timeLeft = QUESTION_SECONDS;
+  setView(renderBattle());
+  beginTimer();
+}
+function finishBattle(){
+  if (!B || B.finished) return;
+  B.finished = true;
+  clearInterval(B.timer);
+  B.timer = null;
+  const win = B.enemyQi <= 0 && B.playerQi > 0;
+  const stars = win ? (B.mistakes.length === 0 ? 3 : (B.mistakes.length <= 2 ? 2 : 1)) : 0;
+  const first = win && !S.completed[B.vol];
+  const baseIncense = win ? 60 + B.vol * 15 + stars * 20 : 0;
+  const earnedIncense = Math.round(B.earned * (1 + B.incenseBoost));
+  const expGain = win ? 80 + B.vol * 15 + stars * 25 : 0;
+  S.incense += earnedIncense + baseIncense;
+  let levelInfo = {gained:0, levels:[]};
+  if (win) {
+    levelInfo = gainExp(expGain);
+    const oldBest = currentStars(B.vol);
+    if (stars > oldBest) S.best[B.vol] = stars;
+    if (!S.best[B.vol]) S.best[B.vol] = stars;
+    S.completed[B.vol] = true;
+    if (B.vol < 10) S.unlocked = Math.max(S.unlocked, B.vol + 1);
+    if (first) S.charms += 1;
+  }
+  const reason = win ? '' : (B.playerQi <= 0 ? '真气耗尽。' : '七问已尽，妖气未散。');
+  B.result = {
+    win,
+    stars,
+    first,
+    reason,
+    baseIncense,
+    earnedIncense,
+    expGain,
+    levelInfo,
+    mistakes:B.mistakes.slice(),
+    vol:B.vol,
+    final:win && B.vol === 10 && allCleared()
+  };
+  save();
+  U.view = 'result';
+  setView(renderResult());
+}
+
+/* ——— 七、唤灵 ——— */
+let U = {view:'home', storyVol:1, pullResults:[], animating:false};
+
+function weightedRank(){
+  const r = Math.random();
+  if (r < 0.02) return '天';
+  if (r < 0.15) return '地';
+  if (r < 0.50) return '玄';
+  return '黄';
+}
+function randomCardOfRank(rank){
+  const pool = CARDS.filter(c => c.rank === rank);
+  return pool.length ? pick(pool) : pick(CARDS);
+}
+function rollCard(){
+  S.pulls += 1;
+  S.pity += 1;
+  let rank;
+  if (S.pity >= 80) rank = '天';
+  else rank = weightedRank();
+  if (rank === '天') S.pity = 0;
+  return randomCardOfRank(rank);
+}
+function pullCost(n, charm){
+  if (charm) return n;
+  return n === 1 ? 100 : 900;
+}
+function doPull(n, charm){
+  if (U.animating) return;
+  if (n !== 1 && n !== 10) return;
+  const cost = pullCost(n, charm);
+  if (charm) {
+    if (S.charms < cost) { toast('请神符不够。', true); return; }
+    S.charms -= cost;
+  } else {
+    if (S.incense < cost) { toast('香火不够。八戒不赊账。', true); return; }
+    S.incense -= cost;
+  }
+  const picks = [];
+  for (let i = 0; i < n; i++) picks.push(rollCard());
+  if (n === 10 && !picks.some(c => rankOrder(c.rank) >= 3)) {
+    picks[picks.length - 1] = randomCardOfRank('地');
+  }
+  const results = [];
+  for (const card of picks) {
+    if (S.cards[card.id]) {
+      S.cards[card.id].stars = clamp(Number(S.cards[card.id].stars) || 1, 1, 5);
+      const shards = RANK_META[card.rank].dupe;
+      S.starGlow += shards;
+      results.push({id:card.id, isNew:false, shards});
+    } else {
+      S.cards[card.id] = {stars:1};
+      results.push({id:card.id, isNew:true, shards:0});
+    }
+  }
+  U.pullResults = results;
+  U.animating = true;
+  save();
+  sfx('stamp');
+  const dust = Array.from({length:14}, (_, i) => {
+    const angle = (Math.PI * 2 * i) / 14 + Math.random() * .5;
+    const dist = 58 + Math.random() * 45;
+    return `<span style="--dx:${Math.cos(angle) * dist}px;--dy:${Math.sin(angle) * dist}px;animation-delay:${(Math.random() * .05).toFixed(2)}s"></span>`;
+  }).join('');
+  const fx = $('#fx');
+  fx.innerHTML = `<div class="summon-fx"><div class="paper"></div><div class="golddust">${dust}</div><div class="seal">请</div></div>`;
+  setTimeout(() => {
+    if (!U.animating) return;
+    $('#fx').innerHTML = '';
+    U.animating = false;
+    if (U.view === 'summon') setView(renderSummon());
+  }, 380);
+}
+/* ——— 养成：星阶与助战 ——— */
+function starCost(card, stars){
+  return RANK_META[card.rank].dupe * stars;
+}
+function upgradeCard(id){
+  const c = cardById(id);
+  if (!c || !S.cards[id]) return;
+  const stars = clamp(S.cards[id].stars || 1, 1, 5);
+  if (stars >= 5) { toast('五星已满。'); return; }
+  const cost = starCost(c, stars);
+  if (S.starGlow < cost) {
+    toast('星辉不够。还差 ' + (cost - S.starGlow) + '。', true);
+    return;
+  }
+  S.starGlow -= cost;
+  S.cards[id].stars = stars + 1;
+  sfx('stamp');
+  save();
+  renderCurrent();
+  if (U.modalCard === id) openCard(id);
+  toast(c.name + ' 升至 ' + (stars + 1) + ' 星。');
+}
+function toggleAssist(id){
+  const c = cardById(id);
+  if (!c || !S.cards[id]) return;
+  const at = S.assists.indexOf(id);
+  if (at >= 0) {
+    S.assists.splice(at, 1);
+    toast('撤下 ' + c.name + '。');
+  } else {
+    if (S.assists.length >= 3) {
+      toast('三席已满。先撤一位。', true);
+      return;
+    }
+    S.assists.push(id);
+    toast(c.name + ' 入席。');
+  }
+  save();
+  sfx('tap');
+  renderCurrent();
+  if (U.modalCard === id) openCard(id);
+}
+
+/* ——— 八、渲染 ——— */
+function effectText(c, stars){
+  const v = c.base * starMult(stars);
+  const n = Math.round(v * 10) / 10;
+  if (c.assist === 'incense') return '香火 +' + n + '%';
+  if (c.assist === 'crit') return '会心 +' + n + '%';
+  return '真气上限 +' + n;
+}
+function pips(cur, max){
+  let h = '';
+  for (let i = 0; i < max; i++) h += `<i class="pip ${i < cur ? 'on' : ''}"></i>`;
+  return h;
+}
+function audioButton(){
+  return `<button class="icon-btn ${S.audio ? 'on' : ''}" data-act="toggleAudio" aria-label="音效开关" aria-pressed="${S.audio ? 'true' : 'false'}" title="音效">音</button>`;
+}
+function header(back, showParent){
+  return `<div class="topbar">
+    <div class="row grow">
+      ${back ? `<button class="icon-btn" data-act="${back.act}" aria-label="${esc(back.label)}">${esc(back.label)}</button>` : ''}
+      <div>
+        <div class="brand-mini">数术西行 <span>· 残卷</span></div>
+        <div class="player-line">法号 <b>${esc(S.name)}</b> · ${esc(realm().name)}</div>
       </div>
     </div>
-  </div>
-</section>
-
-<!-- ===================== 团队介绍 ===================== -->
-<section class="about-section" id="about">
-  <div class="about-grid reveal">
-    <div class="about-text">
-      <h2>关于 Breakon</h2>
-      <p>
-        Breakon 是一支怀揣着动作游戏梦想的独立开发团队。我们想要做的，并非简单的元素堆砌，而是去探索一种全新的碰撞——当东方的内功心法与西方的机械造物同台竞技。
-      </p>
-      <p>
-        目前，团队正在倾尽全力打磨我们的首款作品《刃与牢：旧都魂谣》。虽然我们规模不大，但对“好玩”和“手感”的追求，是我们一直以来的底线。期待早日将这份答卷交到玩家手中。
-      </p>
+    <div class="row" style="gap:10px;flex:none">
+      ${showParent ? '<button class="linkish parent-link" data-act="parent">家长</button>' : ''}
+      ${audioButton()}
     </div>
-    <div class="about-visual">
-      <img src="https://cdn.luogu.com.cn/upload/image_hosting/lx0x0i25.webp" alt="Logo" style="width: 100px; border-radius: 50%; margin-bottom: 20px; z-index: 2;" />
-      <p style="color: var(--gold); letter-spacing: 4px; z-index: 2;">GAME STUDIO</p>
+  </div>`;
+}
+function resourceStrip(){
+  return `<div class="resource-strip">
+    <div class="resource-cell"><span class="k">香火</span><span class="v">${S.incense}</span></div>
+    <div class="resource-cell"><span class="k">请神符</span><span class="v">${S.charms}</span></div>
+    <div class="resource-cell"><span class="k">星辉</span><span class="v">${S.starGlow}</span></div>
+  </div>`;
+}
+function cardHtml(c, opts){
+  opts = opts || {};
+  const own = !!S.cards[c.id];
+  const stars = own ? clamp(S.cards[c.id].stars || 1, 1, 5) : 0;
+  const result = opts.result;
+  const cls = [
+    'card',
+    RANK_META[c.rank].border,
+    own ? '' : 'locked',
+    result && !result.isNew ? 'dupe' : '',
+    result && result.isNew ? 'new' : ''
+  ].filter(Boolean).join(' ');
+  const foot = own
+    ? `<span>${esc(c.faction)} · ${effectText(c, stars)}</span><span class="c-stars">${starText(stars)}${result && !result.isNew ? `<br><span class="dupe-tag">星辉 +${result.shards}</span>` : ''}</span>`
+    : `<span>${esc(c.faction)} · 未得</span><span class="c-stars">${result && !result.isNew ? `<span class="dupe-tag">星辉 +${result.shards}</span>` : ''}</span>`;
+  return `<button class="${cls}" data-act="card" data-id="${c.id}" aria-label="${esc(c.name)}">
+    <span class="c-rank">${c.rank}</span>
+    <span class="c-big">${esc(c.name.slice(0,1))}</span>
+    <span class="c-name">${esc(c.name)}</span>
+    <span class="c-quote">「${esc(c.quote)}」</span>
+    <span class="c-foot">${foot}</span>
+  </button>`;
+}
+function renderHome(){
+  const started = S.started;
+  const cleared = Object.keys(S.completed).length;
+  return `<div class="home"><div class="home-cloud"></div><div class="home-inner">
+    <div class="home-top">
+      <div class="home-mark">天书十卷<b>散于西行</b></div>
+      ${audioButton()}
     </div>
-  </div>
-</section>
-
-<!-- ===================== 页脚 ===================== -->
-<footer class="footer">
-  <div>© 2024 Breakon Studio. All Rights Reserved.</div>
-  <div class="footer-links">
-    <a href="#about">关于我们</a>
-    <a href="#games">代表作品</a>
-  </div>
-</footer>
-
-<script>
-  // 导航栏滚动效果
-  const header = document.getElementById('header');
-  window.addEventListener('scroll', () => {
-    if (window.scrollY > 50) {
-      header.classList.add('scrolled');
-    } else {
-      header.classList.remove('scrolled');
+    <div class="title-block">
+      <div class="vertical-whisper">数不可乱　笔不可停</div>
+      <h1 class="title-main">数术西行</h1>
+      <div class="title-sub">天书残卷</div>
+    </div>
+    <div class="cover-rule"></div>
+    <p class="lede">天书碎了。七十二变少一分，筋斗云偏出三里，唐僧的法术全废，金箍棒也只剩一条普通棍子。<br><b>你是执笔人。</b>这世上，只有你能把数写回天地。</p>
+    ${started ? `<div class="name-field"><label>此卷已落笔</label><div class="name-input" style="border-bottom-color:rgba(201,162,39,.35);padding-left:0">${esc(S.name)}</div></div>
+      <div class="home-actions">
+        <button class="btn btn-seal" data-act="continue">续写残卷</button>
+        <button class="btn" data-act="newGame">另起一卷</button>
+      </div>
+      <div class="home-foot"><span>已破 ${cleared} 卷 · 断网可玩</span><span>自动落卷</span></div>`
+    : `<div class="name-field"><label for="nameInput">法号 · 至多六字</label><input class="name-input" id="nameInput" maxlength="6" autocomplete="off" spellcheck="false" placeholder="无名" value=""></div>
+      <div class="home-actions"><button class="btn btn-seal" data-act="start">落笔</button></div>
+      <div class="home-foot"><span>断网可玩 · 自动落卷</span><span>十卷待启</span></div>`}
+    <div class="seal-corner"><span>天<br>书</span></div>
+  </div></div>`;
+}
+function renderJourney(){
+  const cleared = VOLUMES.filter(v => S.completed[v.n]).length;
+  const quote = allCleared()
+    ? '十卷已合。山门开了。'
+    : (S.wrong.length > 3 ? '错了就拆。拆完再走。' : '你一题一题算。俺一程一程护。');
+  const expNeed = needExp(S.level);
+  const expPct = S.level >= 9 ? 100 : clamp(S.exp / expNeed * 100, 0, 100);
+  const rows = VOLUMES.map(v => {
+    const locked = v.n > S.unlocked;
+    const done = !!S.completed[v.n];
+    const current = v.n === S.unlocked && !done;
+    const stars = currentStars(v.n);
+    return `<button class="chapter ${locked ? 'locked' : ''} ${done ? 'done' : ''} ${current ? 'current' : ''}"
+      data-act="${locked ? 'locked' : 'chapter'}" data-vol="${v.n}">
+      <span class="ch-no">${CN_NUM[v.n]}</span>
+      <span class="ch-main">
+        <span class="ch-title">${esc(v.title)}</span>
+        <span class="ch-meta">${esc(v.topic)} · 守：${esc(v.guard)}</span>
+      </span>
+      <span class="ch-state">${done ? `<span class="st">${starsMark(stars)}</span><br><span class="done-tag">重走</span>` : (locked ? '未启' : '<span class="st">未破</span><br>入卷')}</span>
+    </button>`;
+  }).join('');
+  return `<div class="wrap">
+    ${header(null, true)}
+    ${resourceStrip()}
+    <div class="journey-head">
+      <div class="spread">
+        <div>
+          <h2 class="journey-title">路引</h2>
+          <div class="journey-sub">十卷残页 · 由西而行</div>
+        </div>
+        <div style="text-align:right">
+          <div class="tiny gold">${esc(realm().name)} · ${S.level} 重</div>
+          <div class="tiny">已破 ${cleared} / 10</div>
+        </div>
+      </div>
+      <div class="mastery-bar mt12"><i style="width:${expPct}%"></i></div>
+      <div class="tiny mt8" style="color:rgba(232,224,207,.36)">${S.level >= 9 ? '此境已极。' : '下一重：' + (expNeed - S.exp) + ' 经验'}</div>
+    </div>
+    <div class="nav-strip">
+      <button class="btn btn-sm" data-act="summon">唤灵</button>
+      <button class="btn btn-sm" data-act="assist">助战</button>
+      <button class="btn btn-sm" data-act="sins">业障簿</button>
+    </div>
+    <div class="quote-slab">悟空：「<b>${esc(quote)}</b>」<br><span class="tiny">妖气六点。真气五点。七问定输赢。</span></div>
+    <div class="chapter-list">${rows}</div>
+    <div class="footer-small">
+      <span class="tiny">卷中进度自动留存。</span>
+      <button class="linkish parent-link" data-act="parent">家长页</button>
+    </div>
+  </div>`;
+}
+function renderStory(){
+  const v = VOLUMES[U.storyVol - 1] || VOLUMES[0];
+  const stars = currentStars(v.n);
+  const lines = v.lines.map(([who, text]) => `<div class="dlg">
+      <div class="dlg-speaker">${esc(who)}</div>
+      <div class="dlg-text ${who === '你' ? 'you' : ''}">「${esc(text)}」</div>
+    </div>`).join('');
+  return `<div class="wrap">
+    ${header({act:'toJourney', label:'回'})}
+    <div class="story-head">
+      <div class="volume-eyebrow">卷 ${CN_NUM[v.n]}</div>
+      <h2 class="story-title">${esc(v.title)}</h2>
+      <div class="story-guard">${esc(v.topic)} · 守：${esc(v.guard)}</div>
+    </div>
+    <div class="intro-card"><p class="story-intro">${esc(v.intro)}</p></div>
+    <div class="dialogue">${lines}</div>
+    <div class="volume-rule">
+      <span>妖气 <b>${v.qi}</b></span>
+      <span>真气 <b>${MAX_QI + assistTotals().qi}</b></span>
+      <span>七问</span>
+      <span>四十五息一问</span>
+      ${stars ? `<span>旧绩 <b>${starsMark(stars)}</b></span>` : ''}
+    </div>
+    <div class="story-actions">
+      <button class="btn btn-main" data-act="beginBattle">入阵</button>
+      <button class="btn btn-ghost" data-act="toJourney">回路引</button>
+    </div>
+    <div class="quote-slab mt24">悟空：「算你的。俺看着。」</div>
+  </div>`;
+}
+function renderBattle(){
+  if (!B) return renderJourney();
+  const v = VOLUMES[B.vol - 1];
+  const q = B.qs[B.idx];
+  const f = B.feedback;
+  const marks = ['甲','乙','丙','丁'];
+  const options = q.options.map((text, i) => {
+    let cls = 'option';
+    if (f) {
+      if (i === q.ans) cls += ' correct';
+      else if (i === B.picked) cls += ' wrong';
     }
-  });
+    return `<button class="${cls}" data-act="answer" data-opt="${i}" ${f ? 'disabled' : ''}>
+      <span class="mark">${marks[i]}</span><span>${esc(text)}</span>
+    </button>`;
+  }).join('');
+  let feedback = '';
+  if (f && f.type === 'good') {
+    feedback = `<div class="feedback good" role="status" aria-live="polite">
+      <div class="fb-line">${esc(f.line)}</div>
+      <div class="fb-teach">${f.crit ? '会心一击，妖气退两点。' : '一击。妖气退一点。'}${f.enemyDown ? '妖气散了。' : ' 香火 +' + f.hit + '。'}</div>
+    </div>`;
+  } else if (f && f.type === 'bad') {
+    const defeat = f.defeated;
+    const last = B.idx >= B.qs.length - 1;
+    const action = defeat || last ? 'showResult' : 'nextQ';
+    const label = defeat ? '认栽' : (last ? '收笔' : '下一问');
+    feedback = `<div class="feedback bad" role="status" aria-live="assertive">
+      <div class="fb-line">${esc(f.line)}</div>
+      <div class="fb-teach"><b>悟空拆招</b><br>${esc(f.explain)}<br><span class="tiny">正解：${esc(q.options[q.ans])}。${f.counter ? '真气 −1。' : '妖气已散，这一下没有还手。'}${f.wasCombo >= 2 ? '连击断了。' : ''}</span></div>
+      <div class="fb-actions"><button class="btn btn-sm ${defeat ? 'btn-ghost' : 'btn-main'}" data-act="${action}">${label}</button></div>
+    </div>`;
+  }
+  return `<div class="wrap">
+    ${header({act:'battleQuit', label:'退'})}
+    <div class="battle-top">
+      <div class="fighter enemy">
+        <div class="f-k"><span>守</span><span>妖气</span></div>
+        <div class="f-n">${esc(v.guard)}</div>
+        <div class="qi-row">${pips(B.enemyQi, B.enemyQiMax)}<span class="qi-num">${B.enemyQi}</span></div>
+      </div>
+      <div class="fighter self">
+        <div class="f-k"><span>执笔人</span><span>真气</span></div>
+        <div class="f-n">${esc(S.name)}</div>
+        <div class="qi-row">${pips(B.playerQi, B.playerQiMax)}<span class="qi-num">${B.playerQi}</span></div>
+      </div>
+    </div>
+    <div class="combo-line">
+      <span>连击 <b>${B.combo}</b> · 香火 +${Math.min(B.combo, 10) * 10}%</span>
+      <span>会心 <b>${Math.round(B.crit * 100)}%</b> · 香火增益 ${Math.round(B.incenseBoost * 100)}%</span>
+    </div>
+    <div class="timer-track"><div class="timer-fill ${B.timeLeft <= 15 ? 'low' : ''}" id="timerFill" style="width:${clamp(B.timeLeft / QUESTION_SECONDS, 0, 1) * 100}%"></div></div>
+    <div class="battle-meta"><span>${B.enemyQi <= 0 ? '封卷 · 妖气已散' : '第 ' + chineseQuestionNo(B.idx + 1) + ' 问 · 共七问'}</span><span id="timerNum">${Math.ceil(B.timeLeft)} 息</span></div>
+    <div class="q-panel">
+      <div class="q-no">${esc(v.title)}</div>
+      <div class="q-stem">${esc(q.stem)}</div>
+      <div class="options">${options}</div>
+      ${feedback}
+    </div>
+    <div class="battle-foot">
+      <span class="tiny">妖气 ${B.enemyQi} / ${B.enemyQiMax} · 真气 ${B.playerQi} / ${B.playerQiMax}</span>
+      <button class="linkish" data-act="battleQuit">收棍</button>
+    </div>
+  </div>`;
+}
+function renderResult(){
+  if (!B || !B.result) return renderJourney();
+  const r = B.result;
+  const v = VOLUMES[r.vol - 1];
+  const win = r.win;
+  const title = win
+    ? (r.final ? '十卷归位。你算到了这里。' : '这一关，你算得比俺老孙快。')
+    : '栽了就栽了。山还在，你也还在。';
+  const sub = win ? `第 ${CN_NUM[r.vol]} 卷 · ${v.title}` : '这一阵不算。错题已记下。';
+  const stars = win ? `${starsMark(r.stars)}` : '☆☆☆';
+  const reward = win
+    ? `<div class="reward-grid">
+        <div class="reward"><span class="k">香火</span><span class="v">+${r.earnedIncense + r.baseIncense}</span></div>
+        <div class="reward"><span class="k">经验</span><span class="v">+${r.expGain}</span></div>
+        <div class="reward"><span class="k">${r.first ? '请神符' : '星评'}</span><span class="v">${r.first ? '+1' : starsMark(r.stars)}</span></div>
+      </div>`
+    : `<div class="reward-grid">
+        <div class="reward"><span class="k">香火</span><span class="v">+${r.earnedIncense}</span></div>
+        <div class="reward"><span class="k">答对</span><span class="v">${B.correct} / 7</span></div>
+        <div class="reward"><span class="k">错题</span><span class="v">${B.mistakes.length}</span></div>
+      </div>`;
+  const levelNote = r.levelInfo.gained
+    ? `<div class="growth-note">境界晋升 · ${r.levelInfo.levels.map(x => x.name).join(' / ')}<br><span class="tiny">${r.levelInfo.levels.map(x => esc(x.name) + '：' + esc(x.note)).join('<br>')}</span></div>`
+    : '';
+  const mistakes = r.mistakes.length
+    ? `<div class="mistake-mini"><div class="mm-head">错处 · 已入业障簿</div>${r.mistakes.slice(0, 3).map(m => `<div class="mm">
+        <div class="q">${esc(m.stem)}</div>
+        <div class="a">正解：${esc(m.answer)}</div>
+        <div class="t">${esc(m.explain)}</div>
+      </div>`).join('')}</div>`
+    : '';
+  const hook = win ? `<div class="hook"><b>章末</b>　${esc(v.hook)}</div>` : '';
+  const closeLine = win ? v.close : '这一页没有翻过去。错处记下了，笔还在。';
+  let actions = '';
+  if (win) {
+    if (!r.final) {
+      actions = `<button class="btn btn-main span2" data-act="nextChapter">继续西行</button>
+        <button class="btn btn-ghost" data-act="retry">重走此卷</button>
+        <button class="btn btn-ghost" data-act="toJourney">回路引</button>`;
+    } else {
+      actions = `<button class="btn btn-main span2" data-act="toJourney">收笔 · 回路引</button>
+        <button class="btn btn-ghost" data-act="retry">重走此卷</button>
+        <button class="btn btn-ghost" data-act="summon">去唤灵</button>`;
+    }
+  } else {
+    actions = `<button class="btn btn-main span2" data-act="retry">再来一次</button>
+      <button class="btn btn-ghost" data-act="toJourney">回路引</button>
+      <button class="btn btn-ghost" data-act="sins">看业障簿</button>`;
+  }
+  return `<div class="wrap result">
+    <div class="verdict-wrap">
+      <div class="verdict ${win ? '' : 'lose'}">${win ? '胜' : '败'}</div>
+      <div class="stars">${stars}</div>
+      <h2 class="result-title">${title}</h2>
+      <div class="result-sub">${sub}</div>
+    </div>
+    <div class="result-close">${esc(closeLine)}</div>
+    ${hook}
+    ${reward}
+    ${levelNote}
+    <div class="tiny center mt12" style="color:rgba(232,224,207,.36)">${win ? '天书一页已归位。' : (r.reason || '') + ' 香火未扣，重来便是。'}</div>
+    ${mistakes}
+    <div class="result-actions">${actions}</div>
+    <div class="footer-small"><span class="tiny">卷中进度已存。</span><button class="linkish parent-link" data-act="sins">业障簿</button></div>
+  </div>`;
+}
+function renderSummon(){
+  const rates = ['天','地','玄','黄'].map(r => `<div class="prob"><span class="r ${RANK_META[r].cls}">${r}</span><span class="p">${Math.round(RANK_META[r].prob * 100)}%</span></div>`).join('');
+  const pityLeft = Math.max(0, 80 - S.pity);
+  const results = U.pullResults.length
+    ? `<div class="pull-result-title sweep"><h3>本次请神 · ${U.pullResults.length} 席</h3><button class="linkish" data-act="clearPull">收了</button></div>
+      <div class="pull-grid ${U.pullResults.length > 4 ? 'many' : ''}">${U.pullResults.map(r => {
+        const c = cardById(r.id);
+        return c ? cardHtml(c, {result:r}) : '';
+      }).join('')}</div>`
+    : '';
+  const roster = CARDS.slice().sort((a, b) => rankOrder(b.rank) - rankOrder(a.rank) || a.name.localeCompare(b.name, 'zh')).map(c => cardHtml(c)).join('');
+  const dis = U.animating ? 'disabled' : '';
+  return `<div class="wrap">
+    ${header({act:'toJourney', label:'回'})}
+    ${resourceStrip()}
+    <div class="shop-head">
+      <div>
+        <h2 class="shop-title">唤灵</h2>
+        <div class="shop-sub">八戒在黑市摆摊。香火从斗法来，不收钱。</div>
+      </div>
+      <div class="seal-corner" style="position:static;width:48px;height:48px;font-size:15px;flex:none"><span>请<br>神</span></div>
+    </div>
+    <div class="prob-panel">
+      <div class="spread"><span class="tiny gold">概率公示</span><span class="tiny">出天即重置</span></div>
+      <div class="prob-grid">${rates}</div>
+      <div class="prob-note">八十请必出<b>天</b>。十连必见<b>地</b>。当前距天保底 <b>${pityLeft}</b> 请。请神符可直接抵一请；十请耗十符。</div>
+    </div>
+    <div class="summon-actions">
+      <button class="btn btn-main" data-act="pull" data-n="1" data-charm="0" ${dis}>一请<small>100 香火 · 一席</small></button>
+      <button class="btn btn-gold" data-act="pull" data-n="10" data-charm="0" ${dis}>十请<small>900 香火 · 必见地</small></button>
+    </div>
+    <div class="charm-row">
+      <button class="linkish" data-act="pull" data-n="1" data-charm="1" ${S.charms < 1 || U.animating ? 'disabled' : ''}>以符一请 · 1 符</button>
+      <button class="linkish" data-act="pull" data-n="10" data-charm="1" ${S.charms < 10 || U.animating ? 'disabled' : ''}>以符十请 · 10 符</button>
+    </div>
+    ${results}
+    <div class="star-shop-line"><span>星辉 · ${S.starGlow}</span><span class="tiny">重复得星辉：黄 2 / 玄 4 / 地 8 / 天 15。一至五星，每星助战 +20%。</span></div>
+    <div class="roster-head"><h3>图鉴 · 二十四席</h3><span class="tiny">${Object.keys(S.cards).length} / 24</span></div>
+    <div class="roster-grid">${roster}</div>
+    <div class="footer-small"><span class="tiny">香火与符皆不可用钱买。</span><button class="linkish" data-act="assist">去排助战</button></div>
+  </div>`;
+}
+function renderAssist(){
+  const totals = assistTotals();
+  const slots = [0,1,2].map(i => {
+    const id = S.assists[i];
+    const c = id ? cardById(id) : null;
+    if (!c) return `<button class="slot" data-act="assist">空席<br><span class="tiny">从下方择将</span></button>`;
+    const stars = cardStars(id);
+    return `<button class="slot filled" data-act="toggleAssist" data-id="${c.id}">
+      <span class="s-name">${esc(c.name)}</span>
+      <span class="tiny">${starText(stars)}</span>
+      <span class="s-eff">${effectText(c, stars)}</span>
+    </button>`;
+  }).join('');
+  const owned = CARDS.filter(c => S.cards[c.id]).sort((a,b) => rankOrder(b.rank) - rankOrder(a.rank));
+  const grid = owned.length ? owned.map(c => {
+    const selected = S.assists.includes(c.id);
+    return `<button class="card ${RANK_META[c.rank].border}" data-act="toggleAssist" data-id="${c.id}" style="${selected ? 'border-color:var(--gold);background:rgba(201,162,39,.055)' : ''}">
+      <span class="c-rank">${c.rank}</span>
+      <span class="c-big">${esc(c.name.slice(0,1))}</span>
+      <span class="c-name">${esc(c.name)} ${selected ? '<span class="owned-tag">在席</span>' : ''}</span>
+      <span class="c-foot"><span>${effectText(c, cardStars(c.id))}</span><span class="c-stars">${starText(cardStars(c.id))}</span></span>
+    </button>`;
+  }).join('') : `<div class="empty-box">尚无神将。<br><button class="linkish mt12" data-act="summon">去八戒摊上看看</button></div>`;
+  return `<div class="wrap">
+    ${header({act:'toJourney', label:'回'})}
+    <div class="book-head"><h2 class="book-title">助战</h2><div class="book-sub">三席。香火、会心、真气，各取所长。</div></div>
+    <div class="assist-slots">${slots}</div>
+    <div class="assist-bonus">
+      <div class="ab-row"><span>香火增益</span><b>+${Math.round(totals.incense)}%</b></div>
+      <div class="ab-row"><span>会心加成</span><b>+${Math.round(totals.crit)}%</b></div>
+      <div class="ab-row"><span>真气上限</span><b>+${totals.qi}</b></div>
+    </div>
+    <div class="spread mt18"><span class="tiny gold">已收神将 · ${owned.length}</span><span class="tiny">点将入席。再点撤下。</span></div>
+    <div class="assist-grid">${grid}</div>
+    <div class="footer-small"><span class="tiny">星阶越高，助战越强。</span><button class="linkish" data-act="summon">去唤灵</button></div>
+  </div>`;
+}
+function renderSins(){
+  const list = S.wrong.slice(0, 50).map(w => {
+    const v = VOLUMES[(w.vol || 1) - 1];
+    return `<div class="entry">
+      <div class="e-meta">卷 ${CN_NUM[w.vol || 1]} · ${esc(v ? v.topic : '')} · ${new Date(w.time || Date.now()).toLocaleDateString('zh-CN')}</div>
+      <div class="e-q">${esc(w.stem)}</div>
+      <div class="e-a">正解：${esc(w.answer)}${w.picked ? `　你选：${esc(w.picked)}` : ''}</div>
+      <div class="e-t">${esc(w.explain)}</div>
+    </div>`;
+  }).join('');
+  return `<div class="wrap">
+    ${header({act:'toJourney', label:'回'})}
+    <div class="book-head"><h2 class="book-title">业障簿</h2><div class="book-sub">错处不藏。看一遍，再走。</div></div>
+    ${list ? list : `<div class="empty-box">簿上无字。<br><span class="tiny">还没算错过。或者，还没算过。</span></div>`}
+    ${S.wrong.length > 50 ? `<div class="tiny center mt18" style="color:rgba(232,224,207,.36)">只录最近五十条。</div>` : ''}
+    <div class="footer-small"><span class="tiny">错题不扣香火。</span><button class="linkish" data-act="toJourney">回</button></div>
+  </div>`;
+}
+function renderParent(){
+  const answers = S.stats.answers || 0;
+  const correct = S.stats.correct || 0;
+  const acc = answers ? correct / answers : 0;
+  const week = weekSeconds();
+  const days = currentWeekDays().map(d => ({key:d.key, sec:Number(S.stats.daily[d.key] || 0)}));
+  const maxDay = Math.max(60, ...days.map(d => d.sec));
+  const bars = days.map((d, i) => {
+    const names = ['一','二','三','四','五','六','日'];
+    const h = d.sec ? Math.max(3, Math.round(d.sec / maxDay * 100)) : 1;
+    const label = !d.sec ? '0分' : (d.sec < 60 ? d.sec + '秒' : Math.round(d.sec / 60) + '分');
+    return `<div class="wbar"><i style="height:${h}%"></i><span>${names[i]}<br>${label}</span></div>`;
+  }).join('');
+  const mastery = VOLUMES.map(v => {
+    const s = S.stats.byVol[v.n] || {a:0, c:0};
+    const pct = s.a ? Math.round(s.c / s.a * 100) : 0;
+    return `<div class="mastery-row">
+      <div class="mastery-top"><span><b>${esc(v.topic)}</b> <span class="tiny">卷${CN_NUM[v.n]}</span></span><span>${s.a ? pct + '% · ' + s.c + '/' + s.a : '未答'}</span></div>
+      <div class="mastery-bar"><i style="width:${pct}%"></i></div>
+    </div>`;
+  }).join('');
+  return `<div class="wrap">
+    ${header({act:'toJourney', label:'回'})}
+    <div class="book-head"><h2 class="book-title">家长页</h2><div class="book-sub">只记数，不问真名。数据只在此机。</div></div>
+    <div class="parent-grid">
+      <div class="parent-stat"><div class="v">${answers}</div><div class="k">总答题</div></div>
+      <div class="parent-stat"><div class="v">${answers ? fmtPct(acc) : '—'}</div><div class="k">正确率</div></div>
+      <div class="parent-stat"><div class="v">${fmtDuration(week)}</div><div class="k">本周用时</div></div>
+    </div>
+    <div class="spread mt18"><span class="tiny gold">本周 · 斗法用时</span><span class="tiny">共 ${fmtDuration(week)}</span></div>
+    <div class="week-bars">${bars}</div>
+    <div class="spread mt18"><span class="tiny gold">各知识点掌握度</span><span class="tiny">按答题计</span></div>
+    <div class="mastery">${mastery}</div>
+    <div class="parent-note">只统计斗法答题，不计停留与页面浏览。答错不扣香火，不锁章节。本周用时按周一至周日累计。</div>
+    <div class="danger-zone"><div class="tiny">此卷存于此机。抹去后，法号、进度、神将一并散尽。</div><button class="btn btn-sm btn-ghost" data-act="resetAsk">抹去此卷</button></div>
+    <div class="footer-small"><span class="tiny">数术西行 · 天书残卷</span><button class="linkish" data-act="toJourney">回</button></div>
+  </div>`;
+}
+function renderCurrent(){
+  if (U.view === 'home') setView(renderHome());
+  else if (U.view === 'journey') setView(renderJourney());
+  else if (U.view === 'story') setView(renderStory());
+  else if (U.view === 'battle') setView(renderBattle());
+  else if (U.view === 'result') setView(renderResult());
+  else if (U.view === 'summon') setView(renderSummon());
+  else if (U.view === 'assist') setView(renderAssist());
+  else if (U.view === 'sins') setView(renderSins());
+  else if (U.view === 'parent') setView(renderParent());
+  else setView(renderHome());
+}
+function setView(html){
+  const root = $('#view');
+  if (!root) return;
+  root.innerHTML = html;
+  window.scrollTo(0, 0);
+}
+function showHome(){ U.view = 'home'; setView(renderHome()); }
+function showJourney(){ B = null; U.view = 'journey'; setView(renderJourney()); }
+function showStory(n){
+  const v = VOLUMES[n - 1];
+  if (!v) return showJourney();
+  if (n > S.unlocked) { toast('前卷未破。', true); return; }
+  U.storyVol = n;
+  U.view = 'story';
+  setView(renderStory());
+}
+function showSummon(){
+  U.view = 'summon';
+  setView(renderSummon());
+}
+function showAssist(){
+  U.view = 'assist';
+  setView(renderAssist());
+}
+function showSins(){
+  U.view = 'sins';
+  setView(renderSins());
+}
+function showParent(){
+  U.view = 'parent';
+  setView(renderParent());
+}
+function showModal(html){
+  pauseBattleClock();
+  const m = $('#modal');
+  m.innerHTML = `<div class="modal-sheet">${html}</div>`;
+  m.hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(){
+  const m = $('#modal');
+  m.hidden = true;
+  m.innerHTML = '';
+  U.modalCard = null;
+  document.body.style.overflow = '';
+  resumeBattleClock();
+}
+function showConfirm(title, text, action, label, danger){
+  U.confirmAction = action;
+  showModal(`<button class="icon-btn modal-close" data-act="closeModal">闭</button>
+    <h3 class="modal-title">${esc(title)}</h3>
+    <div class="modal-text">${esc(text)}</div>
+    <div class="modal-actions">
+      <button class="btn ${danger ? 'btn-main' : ''}" data-act="confirmYes">${esc(label || '就此定下')}</button>
+      <button class="btn btn-ghost" data-act="closeModal">再想想</button>
+    </div>`);
+}
+function openCard(id){
+  const c = cardById(id);
+  if (!c) return;
+  U.modalCard = id;
+  const own = !!S.cards[id];
+  const stars = own ? clamp(S.cards[id].stars || 1, 1, 5) : 0;
+  const selected = S.assists.includes(id);
+  const cost = own && stars < 5 ? starCost(c, stars) : 0;
+  const nextText = own && stars < 5 ? effectText(c, stars + 1) : '';
+  const assistAction = own
+    ? `<button class="btn ${selected ? 'btn-ghost' : 'btn-main'}" data-act="toggleAssist" data-id="${id}">${selected ? '撤出席位' : '入席助战'}</button>`
+    : `<button class="btn btn-ghost" data-act="summon">去唤灵</button>`;
+  const upAction = own && stars < 5
+    ? `<button class="btn btn-gold" data-act="starUp" data-id="${id}" ${S.starGlow < cost ? 'disabled' : ''}>升星 · 星辉 ${cost}</button>`
+    : '';
+  const color = c.rank === '天' ? '#c9a227' : c.rank === '地' ? '#3f7d7a' : c.rank === '玄' ? '#748a88' : '#b08d3c';
+  showModal(`<button class="icon-btn modal-close" data-act="closeModal">闭</button>
+    <div class="card-detail-top ${RANK_META[c.rank].border}" style="--rankcolor:${color}">
+      <div class="card-glyph">${esc(c.name.slice(0,1))}</div>
+      <div class="card-detail-info">
+        <div class="card-detail-name">${esc(c.name)}</div>
+        <div class="card-detail-rank">${c.rank}阶 · ${esc(c.faction)} · ${own ? starText(stars) : '未得'}</div>
+      </div>
+    </div>
+    <div class="card-quote">「${esc(c.quote)}」</div>
+    <div class="effect-box"><b>助战</b>　${own ? effectText(c, stars) : '未得此卡'}<br>
+      <span class="tiny">${own ? (stars < 5 ? '下一星：' + nextText : '五星已满。') : '重复获得可转星辉：' + RANK_META[c.rank].dupe + ' 枚。'}</span>
+    </div>
+    <div class="starup-box"><span class="tiny">星辉 ${S.starGlow}${own && stars < 5 ? ' · 升星需 ' + cost : ''}</span></div>
+    <div class="modal-actions">${assistAction}${upAction}</div>`);
+}
 
-  // 滚动显现动画 (Intersection Observer)
-  const revealElements = document.querySelectorAll('.reveal');
-  const revealObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('active');
-        revealObserver.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.1 });
+/* ——— 九、事件 ——— */
+function startGame(){
+  const input = $('#nameInput');
+  let name = input ? input.value.trim() : '';
+  name = Array.from(name).slice(0, 6).join('');
+  S.name = name || '无名';
+  S.started = true;
+  save();
+  sfx('stamp');
+  showJourney();
+}
+function resetGame(){
+  const audio = S.audio;
+  S = blankState();
+  S.audio = audio;
+  U = {view:'home', storyVol:1, pullResults:[], animating:false};
+  save();
+  showHome();
+}
+function quitBattle(){
+  if (B && B.timer) clearInterval(B.timer);
+  B = null;
+  showJourney();
+}
+function handleAction(act, el){
+  const id = el ? el.getAttribute('data-id') : null;
+  const n = el ? Number(el.getAttribute('data-n') || 0) : 0;
+  const charm = el ? el.getAttribute('data-charm') === '1' : false;
+  if (act === 'start') return startGame();
+  if (act === 'continue') {
+    if (!S.started) return showHome();
+    return showJourney();
+  }
+  if (act === 'newGame') {
+    return showConfirm('另起一卷', '另起一卷，旧卷的进度、神将与业障都会散。', resetGame, '另起', true);
+  }
+  if (act === 'toJourney') return showJourney();
+  if (act === 'home') return showHome();
+  if (act === 'locked') return toast('前卷未破。回头把那七问算完。', true);
+  if (act === 'chapter') {
+    const vol = Number(el.getAttribute('data-vol'));
+    if (vol > S.unlocked) return toast('前卷未破。', true);
+    return showStory(vol);
+  }
+  if (act === 'beginBattle') return startBattle(U.storyVol);
+  if (act === 'answer') {
+    if (U.view !== 'battle' || !B || B.locked || B.finished) return;
+    return answerQuestion(Number(el.getAttribute('data-opt')), false);
+  }
+  if (act === 'nextQ') return nextQuestion();
+  if (act === 'showResult') return finishBattle();
+  if (act === 'retry') {
+    const vol = B && B.result ? B.result.vol : U.storyVol;
+    return startBattle(vol);
+  }
+  if (act === 'nextChapter') {
+    if (!B || !B.result || !B.result.win) return;
+    const next = B.result.vol + 1;
+    if (next > 10) return showJourney();
+    return showStory(next);
+  }
+  if (act === 'battleQuit') {
+    return showConfirm('收棍', '此阵不算。算到一半的，不留。', quitBattle, '收棍', true);
+  }
+  if (act === 'summon') { closeModal(); return showSummon(); }
+  if (act === 'assist') { closeModal(); return showAssist(); }
+  if (act === 'sins') return showSins();
+  if (act === 'parent') return showParent();
+  if (act === 'pull') return doPull(n, charm);
+  if (act === 'clearPull') { U.pullResults = []; return setView(renderSummon()); }
+  if (act === 'card') return openCard(id);
+  if (act === 'toggleAssist') return toggleAssist(id);
+  if (act === 'starUp') return upgradeCard(id);
+  if (act === 'toggleAudio') return toggleAudio();
+  if (act === 'resetAsk') {
+    return showConfirm('抹去此卷', '法号、进度、神将、星辉都会散尽。不能收回。', resetGame, '抹去', true);
+  }
+  if (act === 'closeModal') return closeModal();
+  if (act === 'confirmYes') {
+    const fn = U.confirmAction;
+    U.confirmAction = null;
+    closeModal();
+    if (typeof fn === 'function') fn();
+    return;
+  }
+}
+function onClick(e){
+  if (e.target && e.target.id === 'modal') {
+    closeModal();
+    return;
+  }
+  const el = e.target.closest ? e.target.closest('[data-act]') : null;
+  if (!el || el.disabled) return;
+  const act = el.getAttribute('data-act');
+  if (!act) return;
+  handleAction(act, el);
+}
+function onKey(e){
+  if (e.key === 'Escape') {
+    if (!$('#modal').hidden) closeModal();
+    return;
+  }
+  if (e.key === 'Enter' && document.activeElement && document.activeElement.id === 'nameInput') {
+    e.preventDefault();
+    startGame();
+    return;
+  }
+  if (U.view === 'battle' && B && !B.locked && !B.finished && $('#modal').hidden) {
+    const map = {'1':0,'2':1,'3':2,'4':3,'甲':0,'乙':1,'丙':2,'丁':3};
+    if (Object.prototype.hasOwnProperty.call(map, e.key)) {
+      e.preventDefault();
+      answerQuestion(map[e.key], false);
+    }
+  }
+}
 
-  revealElements.forEach(el => revealObserver.observe(el));
+/* ——— 十、启动 ——— */
+S = loadState();
+U = {view:'home', storyVol:1, pullResults:[], animating:false};
+document.addEventListener('click', onClick);
+document.addEventListener('keydown', onKey);
+window.addEventListener('pagehide', save);
+window.addEventListener('beforeunload', save);
+showHome();
+if (!storageOK) {
+  setTimeout(() => toast('此境不留字。刷新即散。', true), 700);
+}
+
 </script>
 </body>
 </html>
